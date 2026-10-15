@@ -30,7 +30,6 @@ min_GPU_freq, max_GPU_freq = 495, 1380
 # Define LQR parameters
 Q = 500  # State cost
 R = 0.01  # Control effort cost
-powercontrol = []
 
 
 def get_power_target(n_gpu):
@@ -126,67 +125,58 @@ def mpc(current_power, target, current_GPU_freqs, current_CPU_freqs, gpu_coefs, 
         return np.zeros(PROCESSOR_NUM)
 
 
-def generate_data(target_size, n_gpu, oversample_factor=1.2):
-    dataset = []
+def plant_power(gpu_freqs, cpu_freq, gpu_coefs, cpu_coef):
+    return sum(f * c for f, c in zip(gpu_freqs, gpu_coefs)) + cpu_freq * cpu_coef
+
+
+def sample_initial_state(n_gpu):
+    gpu_freqs = list(np.random.uniform(min_GPU_freq, max_GPU_freq, n_gpu))
+    cpu_freq = float(np.random.uniform(min_CPU_freq, max_CPU_freq))
+    return gpu_freqs, cpu_freq
+
+
+def apply_frequency_update(gpu_freqs, cpu_freq, u):
+    n_gpu = len(gpu_freqs)
+    next_gpu_freqs = [
+        float(np.clip(gpu_freqs[i] + u[i], min_GPU_freq, max_GPU_freq))
+        for i in range(n_gpu)
+    ]
+    next_cpu_freq = float(np.clip(cpu_freq + u[-1], min_CPU_freq, max_CPU_freq))
+    return next_gpu_freqs, next_cpu_freq
+
+
+def collect_one_end_sample(n_gpu, gpu_coefs, cpu_coef, P_target):
+    gpu_freqs, cpu_freq = sample_initial_state(n_gpu)
+    power = plant_power(gpu_freqs, cpu_freq, gpu_coefs, cpu_coef)
+
+    u = mpc(power, P_target, gpu_freqs, cpu_freq, gpu_coefs, cpu_coef)
+    gpu_freqs, cpu_freq = apply_frequency_update(gpu_freqs, cpu_freq, u)
+
+    end_power = plant_power(gpu_freqs, cpu_freq, gpu_coefs, cpu_coef)
+    return gpu_freqs + [cpu_freq, end_power]
+
+
+def generate_data(target_size, n_gpu):
     gpu_coefs = COEFFICIENTS[n_gpu]["gpu"]
-    cpu_coefs = COEFFICIENTS[n_gpu]["cpu"]
+    cpu_coef = COEFFICIENTS[n_gpu]["cpu"]
     P_target = get_power_target(n_gpu)
-    # Zhuo: steps represents how many steps the system would run for each control period
-    #       error is the percentage of the possibility that the power meter would have wrong readings
-    total_needed = int(target_size * oversample_factor)
-    steps = 2
-    runs = total_needed // steps + 1
-    # print("runs:", total_needed)
-    # np.random.seed(0)  # this is just the random seed set for the error above
 
-    for run in range(runs):
-        current_GPU_freqs = list(np.random.uniform(min_GPU_freq, max_GPU_freq, n_gpu))
-        current_CPU_freqs = np.random.uniform(min_CPU_freq, max_CPU_freq)
+    dataset = [
+        collect_one_end_sample(n_gpu, gpu_coefs, cpu_coef, P_target)
+        for _ in range(target_size)
+    ]
 
-        # Simulate multiple control periods
-        for step in range(steps):
-            # Zhuo: Calculate current power -- replace to actual power meter reading
-            power = sum(f * c for f, c in zip(current_GPU_freqs, gpu_coefs)) + current_CPU_freqs * cpu_coefs
-            dataset.append(current_GPU_freqs + [current_CPU_freqs, power])
-            powercontrol.append(power)
-
-            u = mpc(power, P_target, current_GPU_freqs, current_CPU_freqs,  gpu_coefs, cpu_coefs)
-            # delta_GPU1, delta_CPU = u
-
-            # Update GPU1 and CPU frequencies with constraints
-            for i in range(n_gpu):
-                current_GPU_freqs[i] = np.clip(
-                    current_GPU_freqs[i] + u[i],
-                    min_GPU_freq, max_GPU_freq
-                )
-
-            current_CPU_freqs = np.clip(
-                current_CPU_freqs + u[-1],
-                min_CPU_freq, max_CPU_freq
-            )
-
-    columns = [f"gpu{i+1}_freq" for i in range(n_gpu)] + ["cpu_freq", "total_power"]
-
-    df = pd.DataFrame(dataset, columns=columns)
-    df = df.dropna()
-    df = df.drop_duplicates()
-
-    while len(df) < target_size:
-        extra = generate_data(target_size - len(df), n_gpu, oversample_factor=1.2)
-        df = pd.concat([df, extra], ignore_index=True)
-        df = df.dropna().drop_duplicates()
-
-    df = df.iloc[:target_size]
-
-    return df
+    columns = [f"gpu{i + 1}_freq" for i in range(n_gpu)] + ["cpu_freq", "total_power"]
+    return pd.DataFrame(dataset, columns=columns)
 
 
 targets = 20000
 
 for n_gpu in [1, 2, 4]:
-    df = generate_data(n_gpu*targets, n_gpu)
+    n_samples = n_gpu * targets
+    df = generate_data(n_samples, n_gpu)
 
-    filename = f"Simulator1_{n_gpu}gpu_{n_gpu*targets}.csv"
+    filename = f"Simulator1_gpu{n_gpu}_{n_samples}.csv"
     df.to_csv(filename, index=False)
 
     print(f"Completed: {filename}, sample_size: {len(df)}")
