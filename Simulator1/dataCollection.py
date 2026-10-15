@@ -39,6 +39,9 @@ def get_power_target(n_gpu):
     return 600 + n_gpu * 150
 
 
+def get_safe_power(n_gpu):
+    return get_power_target(n_gpu) + 25
+
 # Constrained optimization function
 def compute_power(delta_gpu_freqs, delta_cpu_freqs, current_power, gpu_coefs, cpu_coef):
     return sum(d * c for d, c in zip(delta_gpu_freqs, gpu_coefs)) + delta_cpu_freqs * cpu_coef + current_power
@@ -128,14 +131,6 @@ def mpc(current_power, target, current_GPU_freqs, current_CPU_freqs, gpu_coefs, 
         return np.zeros(PROCESSOR_NUM)
 
 
-def plant_power(gpu_freqs, cpu_freq, gpu_coefs, cpu_coef):
-    return sum(f * c for f, c in zip(gpu_freqs, gpu_coefs)) + cpu_freq * cpu_coef
-
-
-def get_safe_power(n_gpu):
-    return 600 + n_gpu * 175
-
-
 def sample_initial_state(n_gpu, rng):
     gpu_coefs = COEFFICIENTS[n_gpu]["gpu"]
     cpu_coef = COEFFICIENTS[n_gpu]["cpu"]
@@ -144,7 +139,7 @@ def sample_initial_state(n_gpu, rng):
     while True:
         gpu_freqs = rng.choice(GPU_FREQUENCY_LEVELS, size=n_gpu).tolist()
         cpu_freq = float(rng.choice(CPU_FREQUENCY_LEVELS))
-        power = plant_power(gpu_freqs, cpu_freq, gpu_coefs, cpu_coef)
+        power = sum(f * c for f, c in zip(gpu_freqs, gpu_coefs)) + cpu_freq * cpu_coef
         if power <= safe_power:
             return gpu_freqs, cpu_freq
 
@@ -163,15 +158,15 @@ def apply_frequency_update(gpu_freqs, cpu_freq, u):
     return next_gpu_freqs, next_cpu_freq
 
 
-def collect_one_end_sample(n_gpu, gpu_coefs, cpu_coef, P_target, rng):
+def collect_one_sample(n_gpu, gpu_coefs, cpu_coef, P_target, rng):
     gpu_freqs, cpu_freq = sample_initial_state(n_gpu, rng)
-    power = plant_power(gpu_freqs, cpu_freq, gpu_coefs, cpu_coef)
+    power = sum(f * c for f, c in zip(gpu_freqs, gpu_coefs)) + cpu_freq * cpu_coef
 
+    sample = gpu_freqs + [cpu_freq, power]
     u = mpc(power, P_target, gpu_freqs, cpu_freq, gpu_coefs, cpu_coef)
-    gpu_freqs, cpu_freq = apply_frequency_update(gpu_freqs, cpu_freq, u)
+    apply_frequency_update(gpu_freqs, cpu_freq, u)
 
-    end_power = plant_power(gpu_freqs, cpu_freq, gpu_coefs, cpu_coef)
-    return gpu_freqs + [cpu_freq, end_power]
+    return sample
 
 
 def generate_data(target_size, n_gpu, rng=None):
@@ -183,7 +178,7 @@ def generate_data(target_size, n_gpu, rng=None):
     P_target = get_power_target(n_gpu)
 
     dataset = [
-        collect_one_end_sample(n_gpu, gpu_coefs, cpu_coef, P_target, rng)
+        collect_one_sample(n_gpu, gpu_coefs, cpu_coef, P_target, rng)
         for _ in range(target_size)
     ]
 
