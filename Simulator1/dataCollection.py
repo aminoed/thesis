@@ -13,18 +13,13 @@ COEFFICIENTS = {
         "cpu": 0.198053},
     4: {"gpu": [0.213441, 0.240409, 0.239106, 0.239705],
         "cpu": 0.129515},
-    # 6: {"gpu": [0.199985, 0.213557, 0.212448, 0.213310, 0.212887, 0.213032],
-    #     "cpu": 0.097328},
 }
 
 
-# P_target = 760  # Target power level (W)
 CONTROL_HORIZON = 4
-# PROCESSOR_NUM = 6
 PREDICTION_HORIZON = 2
 
 min_CPU_freq, max_CPU_freq = 1100, 2100
-# min_GPU1_freq, max_GPU1_freq = 495, 1380
 min_GPU_freq, max_GPU_freq = 495, 1380
 
 # Define LQR parameters
