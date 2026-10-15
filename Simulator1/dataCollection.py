@@ -22,6 +22,14 @@ PREDICTION_HORIZON = 2
 min_CPU_freq, max_CPU_freq = 1100, 2100
 min_GPU_freq, max_GPU_freq = 495, 1380
 
+FREQUENCY_STEP_MHZ = 15
+GPU_FREQUENCY_LEVELS = np.arange(
+    min_GPU_freq, max_GPU_freq + 1, FREQUENCY_STEP_MHZ, dtype=float
+)
+CPU_FREQUENCY_LEVELS = np.arange(
+    min_CPU_freq, max_CPU_freq + 1, FREQUENCY_STEP_MHZ, dtype=float
+)
+
 # Define LQR parameters
 Q = 500  # State cost
 R = 0.01  # Control effort cost
@@ -124,24 +132,39 @@ def plant_power(gpu_freqs, cpu_freq, gpu_coefs, cpu_coef):
     return sum(f * c for f, c in zip(gpu_freqs, gpu_coefs)) + cpu_freq * cpu_coef
 
 
-def sample_initial_state(n_gpu):
-    gpu_freqs = list(np.random.uniform(min_GPU_freq, max_GPU_freq, n_gpu))
-    cpu_freq = float(np.random.uniform(min_CPU_freq, max_CPU_freq))
-    return gpu_freqs, cpu_freq
+def get_safe_power(n_gpu):
+    return 600 + n_gpu * 175
+
+
+def sample_initial_state(n_gpu, rng):
+    gpu_coefs = COEFFICIENTS[n_gpu]["gpu"]
+    cpu_coef = COEFFICIENTS[n_gpu]["cpu"]
+    safe_power = get_safe_power(n_gpu)
+
+    while True:
+        gpu_freqs = rng.choice(GPU_FREQUENCY_LEVELS, size=n_gpu).tolist()
+        cpu_freq = float(rng.choice(CPU_FREQUENCY_LEVELS))
+        power = plant_power(gpu_freqs, cpu_freq, gpu_coefs, cpu_coef)
+        if power <= safe_power:
+            return gpu_freqs, cpu_freq
+
+
+def snap_to_frequency(freq, levels):
+    return float(levels[np.abs(levels - freq).argmin()])
 
 
 def apply_frequency_update(gpu_freqs, cpu_freq, u):
     n_gpu = len(gpu_freqs)
     next_gpu_freqs = [
-        float(np.clip(gpu_freqs[i] + u[i], min_GPU_freq, max_GPU_freq))
+        snap_to_frequency(gpu_freqs[i] + u[i], GPU_FREQUENCY_LEVELS)
         for i in range(n_gpu)
     ]
-    next_cpu_freq = float(np.clip(cpu_freq + u[-1], min_CPU_freq, max_CPU_freq))
+    next_cpu_freq = snap_to_frequency(cpu_freq + u[-1], CPU_FREQUENCY_LEVELS)
     return next_gpu_freqs, next_cpu_freq
 
 
-def collect_one_end_sample(n_gpu, gpu_coefs, cpu_coef, P_target):
-    gpu_freqs, cpu_freq = sample_initial_state(n_gpu)
+def collect_one_end_sample(n_gpu, gpu_coefs, cpu_coef, P_target, rng):
+    gpu_freqs, cpu_freq = sample_initial_state(n_gpu, rng)
     power = plant_power(gpu_freqs, cpu_freq, gpu_coefs, cpu_coef)
 
     u = mpc(power, P_target, gpu_freqs, cpu_freq, gpu_coefs, cpu_coef)
@@ -151,13 +174,16 @@ def collect_one_end_sample(n_gpu, gpu_coefs, cpu_coef, P_target):
     return gpu_freqs + [cpu_freq, end_power]
 
 
-def generate_data(target_size, n_gpu):
+def generate_data(target_size, n_gpu, rng=None):
+    if rng is None:
+        rng = np.random.default_rng()
+
     gpu_coefs = COEFFICIENTS[n_gpu]["gpu"]
     cpu_coef = COEFFICIENTS[n_gpu]["cpu"]
     P_target = get_power_target(n_gpu)
 
     dataset = [
-        collect_one_end_sample(n_gpu, gpu_coefs, cpu_coef, P_target)
+        collect_one_end_sample(n_gpu, gpu_coefs, cpu_coef, P_target, rng)
         for _ in range(target_size)
     ]
 
@@ -165,11 +191,12 @@ def generate_data(target_size, n_gpu):
     return pd.DataFrame(dataset, columns=columns)
 
 
+rng = np.random.default_rng(0)
 targets = 20000
 
 for n_gpu in [1, 2, 4]:
     n_samples = n_gpu * targets
-    df = generate_data(n_samples, n_gpu)
+    df = generate_data(n_samples, n_gpu, rng)
 
     filename = f"Simulator1_gpu{n_gpu}_{n_samples}.csv"
     df.to_csv(filename, index=False)
