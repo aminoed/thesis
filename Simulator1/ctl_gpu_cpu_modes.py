@@ -35,7 +35,7 @@ def get_power_target(n_gpu):
 
 
 def get_safe_power(n_gpu):
-    return get_power_target(n_gpu) + 25
+    return get_power_target(n_gpu) + 25*n_gpu
 
 
 # Constrained optimization function
