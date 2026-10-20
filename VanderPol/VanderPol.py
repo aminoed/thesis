@@ -6,20 +6,13 @@ import json
 Range = 3.0
 rng = np.random.default_rng(0)
 
-def Phi(x):
-    t = np.linspace(0, 0.05, 101)
-    sol = odeint(ode_model, x, t)
+
+def Phi(x, dt):
+    sol = odeint(ode_model, x, [0.0, dt], rtol=1e-8, atol=1e-8)
     return sol[-1]
 
 def ode_model(x, t):
-    return [x[1], -x[0] + (1 - x[0]**2) * x[1]]
-
-
-
-def sample_vanderpol(Range, n):
-   X = rng.uniform(-Range, Range, size=(n, 2))
-   Y = np.array([Phi(xi) for xi in X])
-   return X, Y
+    return [x[1], -x[0] + (1 - x[0] ** 2) * x[1]]
 
 
 def load_model(model_path):
@@ -100,28 +93,64 @@ def predict(xs, pieces):
         y_pred = float(w[0] + np.dot(w[1:], xs))
     return y_pred, p
 
-# X, Y = sample_vanderpol(Range, 10000)
-# pd.DataFrame(np.hstack((X, Y[:,0].reshape(-1,1))), columns=['x0', 'x1', 'y0']).to_csv("vanderpol_X.csv", index=False)
-# pd.DataFrame(np.hstack((X, Y[:,1].reshape(-1,1))), columns=['x0', 'x1', 'y1']).to_csv("vanderpol_Y.csv", index=False)
 
 global x_min, x_max
-x_min = np.array([-3.0, -3.0])
-x_max = np.array([3.0, 3.0])
-x0 = [1.25, 2.35]
-x1 = x0.copy()
-pieces1_path = "PAC_PIECE/pieces_a0.05_b1e-08_k10000_e0.01_m3_sresidual_range_NPAC897_y0.json"
-pieces2_path = "PAC_PIECE/pieces_a0.05_b1e-08_k10000_e0.01_m3_sresidual_range_NPAC897_y1.json"
+x_min = np.array([-Range, -Range, 0.0])
+x_max = np.array([Range, Range, 3.0])
+x_init = [-1.8, -1.5]
+x0 = [x_init[0], x_init[1], 0.0]
+dt = 0.03
+pieces1_path = "PAC_PIECE/pieces_a0.2_b0.01_k100000_e0.01_m3_sresidual_range_NPAC97_y0.json"
+pieces2_path = "PAC_PIECE/pieces_a0.2_b0.01_k100000_e0.01_m3_sresidual_range_NPAC97_y1.json"
 pieces1 = load_model(pieces1_path)
 pieces2 = load_model(pieces2_path)
-for i in range(1500):
+
+ts, pac_traj, true_traj = [], [], []
+plt.figure()
+ts.append(x0[2])
+pac_traj.append(x_init)
+true_traj.append(x_init)
+
+for i in range(101):
+    x0[2] += dt
     y1, _ = predict(x0, pieces1)
     y2, _ = predict(x0, pieces2)
-    x0 = [y1, y2]
-    
-    y = Phi(x1)
-    x1 = y
-    plt.plot(x0[0], x0[1], 'o', color='black')
-    plt.plot(x1[0], x1[1], 'x', color='red')
-plt.legend(['PAC', 'True'], loc='upper left')
+    y = Phi(x_init, x0[2])
+
+    ts.append(x0[2])
+    pac_traj.append([y1, y2])
+    true_traj.append(y)
+
+    plt.plot(y1, y2, "o", color="black")
+    plt.plot(y[0], y[1], "x", color="red")
+plt.xlim(-3.0, 3.0)
+plt.ylim(-3.0, 3.0)
+plt.xlabel("x0")
+plt.ylabel("x1")
+plt.legend(["PAC", "True"], loc="upper left")
 plt.savefig("vanderpol.png", dpi=150)
+
+ts = np.asarray(ts)
+pac_traj = np.asarray(pac_traj)
+true_traj = np.asarray(true_traj)
+
+fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+axes[0].plot(ts, pac_traj[:, 0], "o", color="black", label="PAC")
+axes[0].plot(ts, true_traj[:, 0], "x", color="red", label="True")
+axes[0].set_xlabel("t")
+axes[0].set_ylabel("x0")
+axes[0].set_xlim(0, 4.0)
+axes[0].set_ylim(-3.0, 3.0)
+axes[0].legend(loc="upper left")
+
+axes[1].plot(ts, pac_traj[:, 1], "o", color="black", label="PAC")
+axes[1].plot(ts, true_traj[:, 1], "x", color="red", label="True")
+axes[1].set_xlabel("t")
+axes[1].set_ylabel("x1")
+axes[1].set_xlim(0.0, 4.0)
+axes[1].set_ylim(-3.0, 3.0)
+axes[1].legend(loc="upper left")
+
+fig.tight_layout()
+fig.savefig("vanderpol_xt.png", dpi=150)
 plt.show()

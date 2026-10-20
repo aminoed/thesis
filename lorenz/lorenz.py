@@ -5,23 +5,14 @@ import pandas as pd
 import json
 
 rng = np.random.default_rng(0)
-x_min = np.array([-25.0, -25.0, 0.0])
-x_max = np.array([25.0, 25.0, 50.0])
 
-def Phi(x):
-    t = np.linspace(0, 0.025, 101)
-    sol = odeint(ode_model, x, t)
+def Phi(x, dt):
+    sol = odeint(ode_model, x, [0.0, dt], rtol=1e-8, atol=1e-8)
     return sol[-1]
 
 def ode_model(x, t):
     return [10 * (x[1] - x[0]), x[0] * (28 - x[2]) - x[1], x[0] * x[1] - 2.67 * x[2]]
     
-
-def sample_lorenz(n, low=x_min, high=x_max):
-   X = rng.uniform(low, high, size=(n, 3))
-   Y = np.array([Phi(xi) for xi in X])
-   return X, Y
-
 
 def load_model(model_path):
     # zhuo: read the adaptive subdivision model from json
@@ -102,30 +93,75 @@ def predict(xs, pieces):
     return y_pred, p
 
 
-X, Y = sample_lorenz(100000)
-pd.DataFrame(np.hstack((X, Y[:,0].reshape(-1,1))), columns=['x0', 'x1', 'x2', 'y0']).to_csv("lorenz_X.csv", index=False)
-pd.DataFrame(np.hstack((X, Y[:,1].reshape(-1,1))), columns=['x0', 'x1', 'x2', 'y1']).to_csv("lorenz_Y.csv", index=False)
-pd.DataFrame(np.hstack((X, Y[:,2].reshape(-1,1))), columns=['x0', 'x1', 'x2', 'y2']).to_csv("lorenz_Z.csv", index=False)
+global x_min, x_max
+x_min = np.array([-25.0, -25.0, 0.0, 0.0])
+x_max = np.array([25.0, 25.0, 50.0, 3.0])
+x_init = [15.0, 15.0, 36.0]
+x0 = [x_init[0], x_init[1], x_init[2], 0.0]
+dt = 0.03
 
-x0 = [15.0, 15.0, 36.0]
-x1 = x0.copy()
-pieces1_path = "PAC_PIECE/pieces_a0.05_b1e-08_k100000_e0.1_m3_sresidual_range_NPAC937_X.json"
-pieces2_path = "PAC_PIECE/pieces_a0.05_b1e-08_k100000_e0.1_m3_sresidual_range_NPAC937_Y.json"
-pieces3_path = "PAC_PIECE/pieces_a0.05_b1e-08_k100000_e0.1_m3_sresidual_range_NPAC937_Z.json"
+pieces1_path = "PAC_PIECE/pieces_a0.2_b0.01_k100000_e0.01_m3_residual_range_NPAC97_X.json"
+pieces2_path = "PAC_PIECE/pieces_a0.2_b0.01_k100000_e0.01_m3_residual_range_NPAC97_Y.json"
+pieces3_path = "PAC_PIECE/pieces_a0.2_b0.01_k100000_e0.01_m3_residual_range_NPAC97_Z.json"
 
 pieces1 = load_model(pieces1_path)
 pieces2 = load_model(pieces2_path)  
 pieces3 = load_model(pieces3_path)
-for i in range(280):
+
+ts, pac_traj, true_traj = [], [], []
+ts.append(x0[3])
+pac_traj.append(x_init)
+true_traj.append(x_init)
+
+for i in range(101):
+    x0[3] += dt
     y1, _ = predict(x0, pieces1)
     y2, _ = predict(x0, pieces2)
     y3, _ = predict(x0, pieces3)
-    x0 = [y1, y2, y3]
 
-    y = Phi(x1)
-    x1 = y
-    plt.plot(x0[0], x0[1], 'o', color='black')
-    plt.plot(x1[0], x1[1], 'x', color='red')
-plt.legend(['PAC', 'True'], loc='upper left')
+    y = Phi(x0[:3], x0[3])
+    ts.append(x0[3])
+    pac_traj.append([y1, y2, y3])
+    true_traj.append(y)
+
+    plt.plot(y1, y2, 'o', color='black')
+    plt.plot(y[0], y[1], 'x', color='red')
+plt.xlim(-25.0, 25.0)
+plt.ylim(-25.0, 25.0)
+plt.xlabel("x0")
+plt.ylabel("x1")
+# plt.zlabel("x2")
+plt.legend(["PAC", "True"], loc="upper left")
 plt.savefig("lorenz_10k.png", dpi=150)
+
+ts = np.asarray(ts)
+pac_traj = np.asarray(pac_traj)
+true_traj = np.asarray(true_traj)
+
+fig, axes = plt.subplots(1, 3, figsize=(10, 4))
+axes[0].plot(ts, pac_traj[:, 0], "o", color="black", label="PAC")
+axes[0].plot(ts, true_traj[:, 0], "x", color="red", label="True")
+axes[0].set_xlabel("t")
+axes[0].set_ylabel("x0")
+axes[0].set_xlim(0, 4.0)
+axes[0].set_ylim(-25.0, 25.0)
+axes[0].legend(loc="upper left")
+
+axes[1].plot(ts, pac_traj[:, 1], "o", color="black", label="PAC")
+axes[1].plot(ts, true_traj[:, 1], "x", color="red", label="True")
+axes[1].set_xlabel("t")
+axes[1].set_ylabel("x1")
+axes[1].set_xlim(0.0, 4.0)
+axes[1].set_ylim(-25.0, 25.0)
+axes[1].legend(loc="upper left")
+
+axes[2].plot(ts, pac_traj[:, 2], "o", color="black", label="PAC")
+axes[2].plot(ts, true_traj[:, 2], "x", color="red", label="True")
+axes[2].set_xlabel("t")
+axes[2].set_ylabel("x2")
+axes[2].set_xlim(0.0, 4.0)
+axes[2].set_ylim(0.0, 50.0)
+axes[2].legend(loc="upper left")
+fig.tight_layout()
+fig.savefig("lorenz_xt.png", dpi=150)
 plt.show()

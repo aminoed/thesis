@@ -9,12 +9,12 @@ import pandas as pd
 import time
 
 
-ALPHA = 0.05
-BETA = 1e-8
-M_MAX = 1
-SPLIT_STRATEGY = "residual_range" 
+ALPHA = 0.2
+BETA = 0.01
+M_MAX = 3
+SPLIT_STRATEGY = "residual_range"
 # SPLIT_STRATEGY = "maximum_residual"
-EPS_STAR = 0.1
+EPS_STAR = 0.05
 
 
 class BuildStates:
@@ -60,9 +60,9 @@ def n_monomials(d, m):
 
 
 def n_pac_for_degree(alpha, beta, d, m):
-    return int(math.ceil(
-        (2.0 / alpha) * (math.log(1.0 / beta) + n_monomials(d, m) + 1)
-    ))
+    return int(
+        math.ceil((2.0 / alpha) * (math.log(1.0 / beta) + n_monomials(d, m) + 1))
+    )
 
 
 def monomial_exponents(d, degree):
@@ -112,7 +112,7 @@ def fit_polynomial_pac(X_sub, y_sub, degree):
         return None, None
 
     Phi, _ = build_monomial_matrix(X_sub, degree)
-    M = Phi.shape[1]          # number of coefficients
+    M = Phi.shape[1]  # number of coefficients
 
     A = np.zeros((2 * n_sub, M + 1))
     b = np.zeros(2 * n_sub)
@@ -156,7 +156,7 @@ def fit_adaptive_degree(X_sub, y_sub, eps_star, alpha, beta, m_max):
     if n_sub == 0:
         return None
 
-    previous_model = None  
+    previous_model = None
 
     for m in range(1, m_max + 1):
         n_required = n_pac_for_degree(alpha, beta, d, m)
@@ -179,7 +179,9 @@ def fit_adaptive_degree(X_sub, y_sub, eps_star, alpha, beta, m_max):
     return previous_model
 
 
-def best_split(X_sub, y_sub, par_idx, k, error, fit_idx=None, split_strategy="residual_range"):
+def best_split(
+    X_sub, y_sub, par_idx, k, error, fit_idx=None, split_strategy="residual_range"
+):
     n_sub, d = X_sub.shape
     if error is None or n_sub < k:
         return None
@@ -211,7 +213,7 @@ def best_split(X_sub, y_sub, par_idx, k, error, fit_idx=None, split_strategy="re
                 continue
 
             left_n = int(np.sum(can_fit_sort[:j]))
-            right_n = int(np.sum(can_fit_sort[j + 1:]))
+            right_n = int(np.sum(can_fit_sort[j + 1 :]))
             remaining_fit = left_n + right_n
 
             if left_n < k and right_n < k:
@@ -221,6 +223,8 @@ def best_split(X_sub, y_sub, par_idx, k, error, fit_idx=None, split_strategy="re
             if not split_one_side:
                 if left_n < k or right_n < k:
                     continue
+            # if left_n < k or right_n < k:
+            #     continue
 
             if split_strategy == "residual_range":
                 if j == 0:
@@ -251,8 +255,8 @@ def best_split(X_sub, y_sub, par_idx, k, error, fit_idx=None, split_strategy="re
 
             if better:
                 split_value = float(xs_sort[j])
-                left_local = order[:j + 1]
-                right_local = order[j + 1:]
+                left_local = order[: j + 1]
+                right_local = order[j + 1 :]
                 cut_idx = int(par_idx[order[j]])
 
                 best_impurity = impurity
@@ -270,7 +274,9 @@ def best_split(X_sub, y_sub, par_idx, k, error, fit_idx=None, split_strategy="re
     return best
 
 
-def adaSubDiv(X, y, bounds, eps_star, alpha, beta, m_max, split_strategy="residual_range"):
+def adaSubDiv(
+    X, y, bounds, eps_star, alpha, beta, m_max, split_strategy="residual_range"
+):
 
     n, dim = X.shape
     pieces = []
@@ -278,15 +284,17 @@ def adaSubDiv(X, y, bounds, eps_star, alpha, beta, m_max, split_strategy="residu
 
     S = deque()
     entire_idx = np.arange(n)
-    S.append({
-        "bounds": bounds,
-        "idx": entire_idx,
-        "fit_idx": entire_idx,
-        "par_w": None,
-        "par_eps": None,
-        "par_degree": None,
-        "par_fit_idx": None,
-    })
+    S.append(
+        {
+            "bounds": bounds,
+            "idx": entire_idx,
+            "fit_idx": entire_idx,
+            "par_w": None,
+            "par_eps": None,
+            "par_degree": None,
+            "par_fit_idx": None,
+        }
+    )
 
     while S:
         node = S.popleft()
@@ -303,50 +311,73 @@ def adaSubDiv(X, y, bounds, eps_star, alpha, beta, m_max, split_strategy="residu
             if node["par_w"] is None:
                 raise RuntimeError("Could not fit the root region")
 
-            pieces.append({
-                "bounds": node["bounds"],
-                "w": node["par_w"],
-                "degree": node["par_degree"],
-                "epsilon": node["par_eps"],
-                "idx": idx,
-                "fit_idx": fit_idx,
-                "model_fit_idx": node["par_fit_idx"],
-                "inherited": True,
-                "stop_reason": "insufficient_fitting_samples",
-            })
+            pieces.append(
+                {
+                    "bounds": node["bounds"],
+                    "w": node["par_w"],
+                    "degree": node["par_degree"],
+                    "epsilon": node["par_eps"],
+                    "idx": idx,
+                    "fit_idx": fit_idx,
+                    "model_fit_idx": node["par_fit_idx"],
+                    "inherited": True,
+                    "stop_reason": "insufficient_fitting_samples",
+                }
+            )
             continue
 
         w_sub, eps_sub, degree_sub = fitted
 
         if eps_sub <= eps_star:
-            pieces.append({
-                "bounds": node["bounds"],
-                "w": w_sub,
-                "degree": degree_sub,
-                "epsilon": eps_sub,
-                "idx": idx,
-                "fit_idx": fit_idx,
-                "model_fit_idx": fit_idx,
-                "inherited": False,
-                "stop_reason": "threshold_met",
-            })
+            pieces.append(
+                {
+                    "bounds": node["bounds"],
+                    "w": w_sub,
+                    "degree": degree_sub,
+                    "epsilon": eps_sub,
+                    "idx": idx,
+                    "fit_idx": fit_idx,
+                    "model_fit_idx": fit_idx,
+                    "inherited": False,
+                    "stop_reason": "threshold_met",
+                }
+            )
             continue
 
         errors = compute_errors(X_sub, y_sub, w_sub, degree_sub)
-        split = best_split(X_sub, y_sub, idx, N_PAC, errors, fit_idx=fit_idx, split_strategy=split_strategy)
+        # N_SPLIT = n_pac_for_degree(alpha, beta, dim, m_max)
+
+        # split = best_split(
+        #     X_sub, y_sub, idx,
+        #     N_SPLIT,              
+        #     errors,
+        #     fit_idx=fit_idx,
+        #     split_strategy=split_strategy
+        # )
+        split = best_split(
+            X_sub,
+            y_sub,
+            idx,
+            N_PAC,
+            errors,
+            fit_idx=fit_idx,
+            split_strategy=split_strategy,
+        )
 
         if split is None:
-            pieces.append({
-                "bounds": node["bounds"],
-                "w": w_sub,
-                "degree": degree_sub,
-                "epsilon": eps_sub,
-                "idx": idx,
-                "fit_idx": fit_idx,
-                "model_fit_idx": fit_idx,
-                "inherited": False,
-                "stop_reason": "no_valid_split",
-            })
+            pieces.append(
+                {
+                    "bounds": node["bounds"],
+                    "w": w_sub,
+                    "degree": degree_sub,
+                    "epsilon": eps_sub,
+                    "idx": idx,
+                    "fit_idx": fit_idx,
+                    "model_fit_idx": fit_idx,
+                    "inherited": False,
+                    "stop_reason": "no_valid_split",
+                }
+            )
             continue
 
         split_d, split_value, left_idx, right_idx, cut_idx = split
@@ -382,31 +413,35 @@ def adaSubDiv(X, y, bounds, eps_star, alpha, beta, m_max, split_strategy="residu
         DATA.n_splits += 1
 
         if left_fit.size < N_PAC:
-            pieces.append({
-                "bounds": node_left["bounds"],
-                "w": w_sub,
-                "degree": degree_sub,
-                "epsilon": eps_sub,
-                "idx": left_idx,
-                "fit_idx": left_fit,
-                "model_fit_idx": fit_idx,
-                "inherited": True,
-                "stop_reason": "insufficient_fitting_samples",
-            })
+            pieces.append(
+                {
+                    "bounds": node_left["bounds"],
+                    "w": w_sub,
+                    "degree": degree_sub,
+                    "epsilon": eps_sub,
+                    "idx": left_idx,
+                    "fit_idx": left_fit,
+                    "model_fit_idx": fit_idx,
+                    "inherited": True,
+                    "stop_reason": "insufficient_fitting_samples",
+                }
+            )
             S.append(node_right)
 
         elif right_fit.size < N_PAC:
-            pieces.append({
-                "bounds": node_right["bounds"],
-                "w": w_sub,
-                "degree": degree_sub,
-                "epsilon": eps_sub,
-                "idx": right_idx,
-                "fit_idx": right_fit,
-                "model_fit_idx": fit_idx,
-                "inherited": True,
-                "stop_reason": "insufficient_fitting_samples",
-            })
+            pieces.append(
+                {
+                    "bounds": node_right["bounds"],
+                    "w": w_sub,
+                    "degree": degree_sub,
+                    "epsilon": eps_sub,
+                    "idx": right_idx,
+                    "fit_idx": right_fit,
+                    "model_fit_idx": fit_idx,
+                    "inherited": True,
+                    "stop_reason": "insufficient_fitting_samples",
+                }
+            )
             S.append(node_left)
 
         else:
@@ -455,16 +490,18 @@ def serialize_piece(piece, X, y):
 
 # data_file = f"vanderpol_X.csv"
 data_file = f"vanderpol_Y.csv"
-X = pd.read_csv(data_file)[["x0", "x1"]].to_numpy(dtype=float)
+X = pd.read_csv(data_file)[["x0", "x1", "tau"]].to_numpy(dtype=float)
 # y = pd.read_csv(data_file)["y0"].to_numpy(dtype=float)
 y = pd.read_csv(data_file)["y1"].to_numpy(dtype=float)
 sample_size, d = X.shape
 N_PAC = n_pac_for_degree(ALPHA, BETA, d, 1)
-init_bounds = [(X[:, 0].min(), X[:, 0].max()), (X[:, 1].min(), X[:, 1].max())]
+init_bounds = [(X[:, i].min(), X[:, i].max()) for i in range(d)]
 
 DATA.__init__()
 DATA.start_timing()
-pieces = adaSubDiv(X, y, init_bounds, EPS_STAR, ALPHA, BETA, M_MAX, split_strategy=SPLIT_STRATEGY)
+pieces = adaSubDiv(
+    X, y, init_bounds, EPS_STAR, ALPHA, BETA, M_MAX, split_strategy=SPLIT_STRATEGY
+)
 DATA.end_timing()
 
 saved_pieces = []
@@ -516,5 +553,3 @@ print(f"LP solved: {DATA.lp_count}")
 print(f"Build time: {DATA.t_total:.4f} seconds")
 print(f"Saved model: {model_file}")
 print(f"Saved performance: {performance_file}")
-
-

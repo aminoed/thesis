@@ -9,12 +9,12 @@ import pandas as pd
 import time
 
 
-N_GPUs = 1
+N_GPUs = 4
 ALPHA = 0.05
 BETA = 1e-8
 M_MAX = 3
-# SPLIT_STRATEGY = "residual_range" 
-SPLIT_STRATEGY = "maximum_residual"
+SPLIT_STRATEGY = "residual_range" 
+# SPLIT_STRATEGY = "maximum_residual"
 EPS_STAR = 20 + 5 * N_GPUs
 
 
@@ -522,7 +522,7 @@ for degree in (1, 2, 3):
 
 tag = (
     f"NGPU{N_GPUs}_a{ALPHA:g}_b{BETA:g}_k{sample_size}"
-    f"_e{EPS_STAR}_m{M_MAX}_s{SPLIT_STRATEGY}_NPAC{N_PAC}"
+    f"_e{EPS_STAR}_m{M_MAX}_{SPLIT_STRATEGY}_NPAC{N_PAC}"
 )
 
 os.makedirs("PAC_PIECE", exist_ok=True)
@@ -546,6 +546,5 @@ print(f"LP solved: {DATA.lp_count}")
 print(f"Build time: {DATA.t_total:.4f} seconds")
 print(f"Saved model: {model_file}")
 print(f"Saved performance: {performance_file}")
-print(f"Saved summary: {summary_file}")
 
 
