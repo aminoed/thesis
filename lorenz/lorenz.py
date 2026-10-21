@@ -1,5 +1,7 @@
 from scipy.integrate import odeint
 import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoMinorLocator, MultipleLocator
+
 import numpy as np
 import pandas as pd
 import json
@@ -96,75 +98,180 @@ def predict(xs, pieces):
     return y_pred, p
 
 
+def plot_lorenz():
+    TRUE_COLOR = "#326A9F"
+    PAC_COLOR = "#D97732"
+    FIG_SIZE = (6.0, 4.5)
+
+    plot_style = {
+        "font.size": 24,
+        "axes.labelsize": 28,
+        "axes.labelpad": 8,
+        "axes.edgecolor": "#202020",
+        "axes.labelcolor": "#303741",
+        "axes.linewidth": 1.1,
+        "axes.spines.top": False,
+        "axes.spines.right": False,
+        "axes.axisbelow": True,
+        "xtick.color": "#202020",
+        "ytick.color": "#202020",
+        "xtick.direction": "out",
+        "ytick.direction": "out",
+        "xtick.labelsize": 24,
+        "ytick.labelsize": 24,
+        "legend.fontsize": 22,
+        "legend.frameon": False,
+        "figure.facecolor": "white",
+        "axes.facecolor": "white",
+        "savefig.facecolor": "white",
+        "savefig.bbox": None,
+        "pdf.fonttype": 42,
+    }
+
+    def style_axes(ax):
+        ax.grid(
+            which="major",
+            color="#DCE1E7",
+            linewidth=0.6,
+            linestyle="--",
+            alpha=0.8,
+        )
+        ax.xaxis.set_minor_locator(AutoMinorLocator(2))
+        ax.yaxis.set_minor_locator(AutoMinorLocator(2))
+        ax.tick_params(which="major", length=4, width=0.8)
+        ax.tick_params(which="minor", length=2, width=0.6)
+
+    def plot_comparison(ax, true_x, true_y, pac_x, pac_y):
+        ax.plot(
+            true_x,
+            true_y,
+            color=TRUE_COLOR,
+            linewidth=3.0,
+            label="ODE Solution",
+            zorder=2,
+        )
+        ax.plot(
+            pac_x,
+            pac_y,
+            color=PAC_COLOR,
+            linestyle="none",
+            marker="o",
+            markersize=4.5,
+            markerfacecolor="white",
+            markeredgewidth=1.2,
+            label="PAC Estimation",
+            zorder=3,
+        )
+
+    with plt.rc_context(plot_style):
+        # State components over time
+        for j in range(3):
+            fig, ax = plt.subplots(
+                figsize=FIG_SIZE,
+                layout="constrained",
+            )
+
+            plot_comparison(
+                ax,
+                ts, true_traj[:, j],
+                ts, pac_traj[:, j],
+            )
+
+            ax.set_xlabel(r"$t$")
+            ax.set_ylabel(rf"$s_{j + 1}$")
+            ax.set_xlim(ts[0] - 0.04, ts[-1] + 0.04)
+            ax.margins(y=0.12)
+
+            ax.xaxis.set_major_locator(MultipleLocator(0.1))
+            y_step = 5.0 if j == 1 else 2.0
+            ax.yaxis.set_major_locator(MultipleLocator(y_step))
+
+            style_axes(ax)
+            if j==1:
+                ax.legend(
+                    loc="lower center",
+                    bbox_to_anchor=(0.5, 1.0),
+                    handlelength=1,
+                    handletextpad=0.5,
+                    labelspacing=0.3,
+                )
+            fig.savefig(
+                f"lorenz_s{j + 1}.pdf",
+                bbox_inches=None,
+            )
+
+    plt.show()
+
+
 global x_min, x_max
-x_min = np.array([-25.0, -25.0, 0.0, 0.0])
-x_max = np.array([25.0, 25.0, 50.0, 1.0])
+x_min = np.array([-20.0, -20.0, 0.0, 0.0])
+x_max = np.array([20.0, 20.0, 45.0, 0.5])
+
 x_init = [15.0, 5.0, 25.0]
-x0 = [x_init[0], x_init[1], x_init[2], 0.01]
+x0 = [*x_init, 0.0]
 dt = 0.001
 
-pieces1_path = "PAC_PIECE/pieces_a0.2_b0.01_k100000_e0.1_m3_residual_range_NPAC107_X.json"
-pieces2_path = "PAC_PIECE/pieces_a0.2_b0.01_k100000_e0.1_m3_residual_range_NPAC107_Y.json"
+pieces1_path = "PAC_PIECE/pieces_a0.2_b0.01_k125000_e0.1_m3_residual_range_NPAC107_X.json"
+pieces2_path = "PAC_PIECE/pieces_a0.2_b0.01_k200000_e0.1_m3_residual_range_NPAC107_Y.json"
 pieces3_path = "PAC_PIECE/pieces_a0.2_b0.01_k100000_e0.1_m3_residual_range_NPAC107_Z.json"
 
 pieces1 = load_model(pieces1_path)
 pieces2 = load_model(pieces2_path)  
 pieces3 = load_model(pieces3_path)
 
-ts, pac_traj, true_traj = [], [], []
-ts.append(x0[3])
-pac_traj.append(x_init)
-true_traj.append(x_init)
+t_end = min(
+    0.5,
+    max(p["bounds"][3][1] for p in pieces1),
+    max(p["bounds"][3][1] for p in pieces2),
+    max(p["bounds"][3][1] for p in pieces3),
+)
 
-for i in range(400):
-    x0[3] += dt
-    y1, _ = predict(x0, pieces1)
-    y2, _ = predict(x0, pieces2)
-    y3, _ = predict(x0, pieces3)
+query_times = np.append(np.arange(dt, t_end, dt), t_end)
+ts = np.concatenate(([0.0], query_times))
+true_traj = odeint(ode_model, x_init, ts, rtol=1e-8, atol=1e-8)
 
-    y = Phi(x0[:3], x0[3])
-    ts.append(x0[3])
+pac_traj = [x_init.copy()]
+err1, eps1 = [], []
+err2, eps2 = [], []
+err3, eps3 = [], []
+for i, t in enumerate(query_times):
+    xs = [x_init[0], x_init[1], x_init[2], float(t)]
+    y1, p1 = predict(xs, pieces1)
+    y2, p2 = predict(xs, pieces2)
+    y3, p3 = predict(xs, pieces3)
     pac_traj.append([y1, y2, y3])
-    true_traj.append(y)
 
-    plt.plot(y1, y2, 'o', color='black')
-    plt.plot(y[0], y[1], 'x', color='red')
-plt.xlim(-20.0, 20.0)
-plt.ylim(-20.0, 20.0)
-plt.xlabel("x0")
-plt.ylabel("x1")
-# plt.zlabel("x2")
-plt.legend(["PAC", "True"], loc="upper left")
-plt.savefig("lorenz_10k.png", dpi=150)
+    err = np.abs([y1, y2, y3] - true_traj[i + 1])
+    eps = [p1["epsilon"], p2["epsilon"], p3["epsilon"]]
+    x0[3] += dt
+    if t < 0.1:
+        err1.append(err); eps1.append(eps)
+    elif t < 0.3:
+        err2.append(err); eps2.append(eps)
+    else:
+        err3.append(err); eps3.append(eps)
 
-ts = np.asarray(ts)
 pac_traj = np.asarray(pac_traj)
-true_traj = np.asarray(true_traj)
 
-fig, axes = plt.subplots(1, 3, figsize=(10, 4))
-axes[0].plot(ts, pac_traj[:, 0], "o", color="black", label="PAC")
-axes[0].plot(ts, true_traj[:, 0], "x", color="red", label="True")
-axes[0].set_xlabel("t")
-axes[0].set_ylabel("x0")
-axes[0].set_xlim(0, 0.5)
-axes[0].set_ylim(-20.0, 20.0)
-axes[0].legend(loc="upper left")
+rows = []
+for name, err_list, eps_list in [
+    ("[0,0.1)", err1, eps1),
+    ("[0.1,0.3)", err2, eps2),
+    ("[0.3,0.5]", err3, eps3),
+]:
+    err = np.asarray(err_list)
+    eps = np.asarray(eps_list)
+    for j, state in enumerate(["s1", "s2", "s3"]):
+        rows.append({
+            "t_interval": name,
+            "state": state,
+            "error_mean": err[:, j].mean(),
+            "error_max": err[:, j].max(),
+            "epsilon_max": eps[:, j].max(),
+            "exceed_eps_star_pct": 100.0 * np.mean(eps[:, j] > 0.1),
+        })
 
-axes[1].plot(ts, pac_traj[:, 1], "o", color="black", label="PAC")
-axes[1].plot(ts, true_traj[:, 1], "x", color="red", label="True")
-axes[1].set_xlabel("t")
-axes[1].set_ylabel("x1")
-axes[1].set_xlim(0.0, 0.5)
-axes[1].set_ylim(-20.0, 20.0)
-axes[1].legend(loc="upper left")
-
-axes[2].plot(ts, pac_traj[:, 2], "o", color="black", label="PAC")
-axes[2].plot(ts, true_traj[:, 2], "x", color="red", label="True")
-axes[2].set_xlabel("t")
-axes[2].set_ylabel("x2")
-axes[2].set_xlim(0.0, 0.5)
-axes[2].set_ylim(0.0, 45.0)
-axes[2].legend(loc="upper left")
-fig.tight_layout()
-fig.savefig("lorenz_xt.png", dpi=150)
-plt.show()
+summary = pd.DataFrame(rows)
+print(summary.to_string(index=False, float_format=lambda x: f"{x:.4f}"))
+summary.to_csv("lorenz_summary.csv", index=False)
+plot_lorenz()

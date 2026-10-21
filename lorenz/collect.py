@@ -22,13 +22,11 @@ def Phi(x, dt):
 
 def sample_lorenz(n, low=x_min, high=x_max):
     X_good, Y_good = [], []
-    n_fail = 0
     while len(X_good) < n:
         xi = rng.uniform(low, high)
         y = Phi(xi[:3], xi[3])
         if y is None:
-            n_fail += 1
-            continue
+            raise RuntimeError(f"integration failed, input: {xi.tolist()}")
         X_good.append(xi)
         Y_good.append(y)
     return np.array(X_good), np.array(Y_good)
@@ -38,7 +36,7 @@ def ode_model(x, t):
     return [10 * (x[1] - x[0]), x[0] * (28 - x[2]) - x[1], x[0] * x[1] - 2.67 * x[2]]
 
 
-n = 100000
+n = 200000
 X, Y = sample_lorenz(n)
 pd.DataFrame(
     np.hstack((X, Y[:, 0].reshape(-1, 1))), columns=["x0", "x1", "x2", "tau", "y0"]

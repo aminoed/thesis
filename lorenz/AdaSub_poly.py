@@ -16,6 +16,10 @@ SPLIT_STRATEGY = "residual_range"
 # SPLIT_STRATEGY = "maximum_residual"
 EPS_STAR = 0.1
 
+OUTPUT = 0                     
+N_POOL = 200000                 
+N_TRAIN = (125000, 200000, 100000)[OUTPUT]
+OUTPUT_NAME = ("X", "Y", "Z")[OUTPUT]
 
 class BuildStates:
     def __init__(self):
@@ -457,14 +461,19 @@ def serialize_piece(piece, X, y):
     return saved_piece
 
 
-n = 100000
-data_file = f"lorenz_X_{n}.csv"
-# data_file = f"lorenz_Y_{n}.csv"
-# data_file = f"lorenz_Z_{n}.csv" 
-X = pd.read_csv(data_file)[["x0", "x1", "x2", "tau"]].to_numpy(dtype=float)
-y = pd.read_csv(data_file)["y0"].to_numpy(dtype=float)
-# y = pd.read_csv(data_file)["y1"].to_numpy(dtype=float)
-# y = pd.read_csv(data_file)["y2"].to_numpy(dtype=float)
+data_file = f"lorenz_{OUTPUT_NAME}_{N_POOL}.csv"
+data = pd.read_csv(data_file)
+
+# if len(data) < N_TRAIN:
+#     raise ValueError(
+#         f"{data_file} has {len(data)} rows, but {N_TRAIN} rows are required"
+#     )
+
+data = data.iloc[:N_TRAIN]
+
+X = data[["x0", "x1", "x2", "tau"]].to_numpy(dtype=float)
+y = data[f"y{OUTPUT}"].to_numpy(dtype=float)
+
 sample_size, d = X.shape
 N_PAC = n_pac_for_degree(ALPHA, BETA, d, 1)
 init_bounds = [(X[:, i].min(), X[:, i].max()) for i in range(d)]
@@ -499,7 +508,7 @@ for degree in (1, 2, 3):
 
 tag = (
     f"a{ALPHA:g}_b{BETA:g}_k{sample_size}"
-    f"_e{EPS_STAR}_m{M_MAX}_{SPLIT_STRATEGY}_NPAC{N_PAC}_X"   
+    f"_e{EPS_STAR}_m{M_MAX}_{SPLIT_STRATEGY}_NPAC{N_PAC}_{OUTPUT_NAME}"
 )
 
 os.makedirs("PAC_PIECE", exist_ok=True)

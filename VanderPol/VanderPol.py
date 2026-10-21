@@ -158,6 +158,151 @@ def predict(xs, pieces):
 # fig.savefig("vanderpol_xt.png", dpi=150)
 # plt.show()
 
+def plot_vanderpol():
+    TRUE_COLOR = "#326A9F"
+    PAC_COLOR = "#D97732"
+    FIG_SIZE = (6.0, 4.5)
+
+    plot_style = {
+        "font.size": 24,
+        "axes.labelsize": 28,
+        "axes.labelpad": 8,
+        "axes.edgecolor": "#202020",
+        "axes.labelcolor": "#303741",
+        "axes.linewidth": 1.1,
+        "axes.spines.top": False,
+        "axes.spines.right": False,
+        "axes.axisbelow": True,
+        "xtick.color": "#202020",
+        "ytick.color": "#202020",
+        "xtick.direction": "out",
+        "ytick.direction": "out",
+        "xtick.labelsize": 24,
+        "ytick.labelsize": 24,
+        "legend.fontsize": 22,
+        "legend.frameon": False,
+        "figure.facecolor": "white",
+        "axes.facecolor": "white",
+        "savefig.facecolor": "white",
+        "savefig.bbox": None,
+        "pdf.fonttype": 42,
+    }
+
+    def style_axes(ax):
+        ax.grid(
+            which="major",
+            color="#DCE1E7",
+            linewidth=0.6,
+            linestyle="--",
+            alpha=0.8,
+        )
+        ax.xaxis.set_minor_locator(AutoMinorLocator(2))
+        ax.yaxis.set_minor_locator(AutoMinorLocator(2))
+        ax.tick_params(which="major", length=4, width=0.8)
+        ax.tick_params(which="minor", length=2, width=0.6)
+
+    def plot_comparison(ax, true_x, true_y, pac_x, pac_y):
+        ax.plot(
+            true_x,
+            true_y,
+            color=TRUE_COLOR,
+            linewidth=3.0,
+            label="ODE Solution",
+            zorder=2,
+        )
+        ax.plot(
+            pac_x,
+            pac_y,
+            color=PAC_COLOR,
+            linestyle="none",
+            marker="o",
+            markersize=4.5,
+            markerfacecolor="white",
+            markeredgewidth=1.2,
+            label="PAC Estimation",
+            zorder=3,
+        )
+
+    with plt.rc_context(plot_style):
+        # State components over time
+        for j in range(2):
+            fig, ax = plt.subplots(
+                figsize=FIG_SIZE,
+                layout="constrained",
+            )
+
+            plot_comparison(
+                ax,
+                ts, true_traj[:, j],
+                ts, pac_traj[:, j],
+            )
+
+            ax.set_xlabel(r"$t$")
+            ax.set_ylabel(rf"$s_{j + 1}$")
+            ax.set_xlim(ts[0] - 0.04, ts[-1] + 0.04)
+            ax.margins(y=0.12)
+
+            ax.xaxis.set_major_locator(MultipleLocator(0.5))
+            ax.yaxis.set_major_locator(MultipleLocator(1.0))
+
+            style_axes(ax)
+            if j==0:
+                ax.legend(
+                    loc="upper left",
+                    handlelength=1.5,
+                    handletextpad=0.5,
+                    labelspacing=0.3,
+                )
+            fig.savefig(
+                f"vanderpol_s{j + 1}.pdf",
+                bbox_inches=None,
+            )
+
+        # State trajectory
+        fig_phase, ax = plt.subplots(
+            figsize=FIG_SIZE,
+            layout="constrained",
+        )
+
+        plot_comparison(
+            ax,
+            true_traj[:, 0], true_traj[:, 1],
+            pac_traj[:, 0], pac_traj[:, 1],
+        )
+
+        ax.scatter(
+            *x_init,
+            s=28,
+            color="#303741",
+            zorder=4,
+        )
+        ax.annotate(
+            r"$t=0$",
+            xy=x_init,
+            xytext=(8, 9),
+            textcoords="offset points",
+            fontsize=22,
+            color="#303741",
+        )
+
+        ax.set_xlabel(r"$s_1$")
+        ax.set_ylabel(r"$s_2$")
+        ax.set_aspect("equal", adjustable="box")
+        ax.margins(x=0.12, y=0.15)
+
+        ax.xaxis.set_major_locator(MultipleLocator(1.0))
+        ax.yaxis.set_major_locator(MultipleLocator(1.0))
+
+        style_axes(ax)
+        
+        fig_phase.savefig(
+            "vanderpol.pdf",
+            bbox_inches=None,
+        )
+
+    plt.show()
+
+
 global x_min, x_max
 x_min = np.array([-Range, -Range, 0.0])
 x_max = np.array([Range, Range, 3.0])
@@ -169,8 +314,8 @@ pieces1_path = "PAC_PIECE/pieces_a0.2_b0.01_k200000_e0.05_m3_sresidual_range_NPA
 pieces2_path = "PAC_PIECE/pieces_a0.2_b0.01_k100000_e0.1_m3_sresidual_range_NPAC97_y1.json"
 pieces1 = load_model(pieces1_path)
 pieces2 = load_model(pieces2_path)
+eps_star = [0.05, 0.1]  
 
-# Include both endpoints without stepping outside the learned time domain.
 t_end = min(
     3.0,
     max(p["bounds"][2][1] for p in pieces1),
@@ -179,95 +324,51 @@ t_end = min(
 
 query_times = np.append(np.arange(dt, t_end, dt), t_end)
 ts = np.concatenate(([0.0], query_times))
-pac_traj = [x_init.copy()]
-for t in query_times:
-    xs = [*x_init, float(t)]
-    y1, _ = predict(xs, pieces1)
-    y2, _ = predict(xs, pieces2)
-    pac_traj.append([y1, y2])
-pac_traj = np.asarray(pac_traj)
 true_traj = odeint(ode_model, x_init, ts, rtol=1e-8, atol=1e-8)
 
-TRUE_COLOR = "#326A9F"
-PAC_COLOR = "#D97732"
+pac_traj = [x_init.copy()]
+err1, eps1 = [], []
+err2, eps2 = [], []
+err3, eps3 = [], []
 
-plot_style = {
-    "font.size": 12,
-    "axes.labelsize": 15,
-    "axes.labelpad": 8,
-    "axes.edgecolor": "#737B85",
-    "axes.labelcolor": "#303741",
-    "axes.linewidth": 0.8,
-    "axes.spines.top": False,
-    "axes.spines.right": False,
-    "axes.axisbelow": True,
-    "xtick.color": "#505965",
-    "ytick.color": "#505965",
-    "xtick.direction": "out",
-    "ytick.direction": "out",
-    "xtick.labelsize": 11,
-    "ytick.labelsize": 11,
-    "legend.fontsize": 11,
-    "legend.frameon": False,
-    "figure.facecolor": "white",
-    "axes.facecolor": "white",
-    "savefig.facecolor": "white",
-    "pdf.fonttype": 42,
-}
+for i, t in enumerate(query_times):
+    xs = [x_init[0], x_init[1], float(t)]
+    y1, p1 = predict(xs, pieces1)
+    y2, p2 = predict(xs, pieces2)
+    pac_traj.append([y1, y2])
+
+    err = np.abs([y1, y2] - true_traj[i + 1])
+    eps = [p1["epsilon"], p2["epsilon"]]
+    if t < 1:
+        err1.append(err); eps1.append(eps)
+    elif t < 2:
+        err2.append(err); eps2.append(eps)
+    else:
+        err3.append(err); eps3.append(eps)
+
+pac_traj = np.asarray(pac_traj)
+
+rows = []
+for name, err_list, eps_list in [
+    ("[0,1)", err1, eps1),
+    ("[1,2)", err2, eps2),
+    ("[2,3]", err3, eps3),
+]:
+    err = np.asarray(err_list)
+    eps = np.asarray(eps_list)
+    for j, state in enumerate(["s1", "s2"]):
+        rows.append({
+            "t_interval": name,
+            "state": state,
+            "error_mean": err[:, j].mean(),
+            "error_max": err[:, j].max(),
+            "epsilon_max": eps[:, j].max(),
+            "exceed_eps_star_pct": 100.0 * np.mean(eps[:, j] > eps_star[j]),
+        })
+
+summary = pd.DataFrame(rows)
+print(summary.to_string(index=False, float_format=lambda x: f"{x:.4f}"))
+summary.to_csv("vanderpol_summary.csv", index=False)
+plot_vanderpol()
 
 
-def style_axes(ax):
-    ax.grid(which="major", color="#DCE1E7", linewidth=0.6,
-            linestyle="--", alpha=0.8)
-    ax.xaxis.set_minor_locator(AutoMinorLocator(2))
-    ax.yaxis.set_minor_locator(AutoMinorLocator(2))
-    ax.tick_params(which="major", length=4, width=0.8)
-    ax.tick_params(which="minor", length=2, width=0.6)
-
-
-def plot_comparison(ax, true_x, true_y, pac_x, pac_y):
-    ax.plot(true_x, true_y, color=TRUE_COLOR, linewidth=2.1,
-            label="True", zorder=2)
-    # Keep every prediction visible without connecting jumps between pieces.
-    ax.plot(pac_x, pac_y, color=PAC_COLOR, linestyle="none",
-            marker="o", markersize=3.4, markerfacecolor="white",
-            markeredgewidth=0.9, label="PAC", zorder=3)
-
-
-with plt.rc_context(plot_style):
-    fig_phase, ax = plt.subplots(figsize=(6.0, 5.2),
-                                 layout="constrained")
-    plot_comparison(ax, true_traj[:, 0], true_traj[:, 1],
-                    pac_traj[:, 0], pac_traj[:, 1])
-    ax.scatter(*x_init, s=28, color="#303741", zorder=4)
-    ax.annotate(r"$t=0$", xy=x_init, xytext=(8, 9),
-                textcoords="offset points", fontsize=11,
-                color="#303741")
-    ax.set_xlabel(r"$x_0$")
-    ax.set_ylabel(r"$x_1$")
-    ax.set_aspect("equal", adjustable="box")
-    ax.margins(x=0.12, y=0.15)
-    ax.xaxis.set_major_locator(MultipleLocator(1.0))
-    ax.yaxis.set_major_locator(MultipleLocator(1.0))
-    style_axes(ax)
-    ax.legend(loc="upper left", handlelength=2.8)
-    fig_phase.savefig("vanderpol.png", dpi=300, bbox_inches="tight")
-    fig_phase.savefig("vanderpol.pdf", bbox_inches="tight")
-
-    fig_time, axes = plt.subplots(1, 2, figsize=(10.2, 4.0),
-                                  sharey=True, layout="constrained")
-    for j, ax in enumerate(axes):
-        plot_comparison(ax, ts, true_traj[:, j], ts, pac_traj[:, j])
-        ax.set_xlabel(r"$t$")
-        ax.set_ylabel(rf"$x_{j}$")
-        ax.set_xlim(ts[0] - 0.04, ts[-1] + 0.04)
-        ax.margins(y=0.12)
-        ax.xaxis.set_major_locator(MultipleLocator(0.5))
-        ax.yaxis.set_major_locator(MultipleLocator(1.0))
-        style_axes(ax)
-        ax.legend(loc="upper left", handlelength=2.8)
-    axes[1].tick_params(labelleft=True)
-    fig_time.savefig("vanderpol_xt.png", dpi=300, bbox_inches="tight")
-    fig_time.savefig("vanderpol_xt.pdf", bbox_inches="tight")
-
-plt.show()
