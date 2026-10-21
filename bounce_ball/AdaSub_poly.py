@@ -9,13 +9,15 @@ import pandas as pd
 import time
 
 
-ALPHA = 0.05
-BETA = 1e-8
+ALPHA = 0.1
+BETA = 0.01
 M_MAX = 3
 SPLIT_STRATEGY = "residual_range"
 # SPLIT_STRATEGY = "maximum_residual"
-EPS_STAR = 0.5
+OUTPUT = 0
 
+EPS_STAR = 0.05 if OUTPUT == 0 else 0.5
+N_TRAIN = 200000
 
 class BuildStates:
     def __init__(self):
@@ -477,14 +479,12 @@ def serialize_piece(piece, X, y):
     return saved_piece
 
 
-# data_file = f"bounce_ball_X.csv"
-data_file = f"bounce_ball_Y.csv"
-X = pd.read_csv(data_file)[["x0", "x1"]].to_numpy(dtype=float)
-# y = pd.read_csv(data_file)["y0"].to_numpy(dtype=float)
-y = pd.read_csv(data_file)["y1"].to_numpy(dtype=float)
+data_file = f"bounce_ball_X_{N_TRAIN}.csv" if OUTPUT == 0 else f"bounce_ball_Y_{N_TRAIN}.csv"
+X = pd.read_csv(data_file)[["x0", "x1", "tau"]].to_numpy(dtype=float)
+y = pd.read_csv(data_file)[f"y{OUTPUT}"].to_numpy(dtype=float)
 sample_size, d = X.shape
 N_PAC = n_pac_for_degree(ALPHA, BETA, d, 1)
-init_bounds = [(X[:, 0].min(), X[:, 0].max()), (X[:, 1].min(), X[:, 1].max())]
+init_bounds = [(X[:, i].min(), X[:, i].max()) for i in range(d)]
 
 DATA.__init__()
 DATA.start_timing()
@@ -518,7 +518,7 @@ for degree in (1, 2, 3):
 
 tag = (
     f"a{ALPHA:g}_b{BETA:g}_k{sample_size}"
-    f"_e{EPS_STAR}_m{M_MAX}_s{SPLIT_STRATEGY}_NPAC{N_PAC}_Y"
+    f"_e{EPS_STAR}_m{M_MAX}_s{SPLIT_STRATEGY}_NPAC{N_PAC}_y{OUTPUT}"
 )
 
 os.makedirs("PAC_PIECE", exist_ok=True)

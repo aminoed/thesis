@@ -2,7 +2,6 @@ from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import json
 
 Range = 20.0
 rng = np.random.default_rng(0)

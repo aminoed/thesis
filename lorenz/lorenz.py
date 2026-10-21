@@ -183,7 +183,14 @@ def plot_lorenz():
             ax.margins(y=0.12)
 
             ax.xaxis.set_major_locator(MultipleLocator(0.1))
-            y_step = 5.0 if j == 1 else 2.0
+            if j==0:
+                y_step = 2.0
+            elif j==1:
+                y_step = 5.0
+            elif j==2:
+                y_step = 1.0
+
+            ax.yaxis.set_major_locator(MultipleLocator(y_step))
             ax.yaxis.set_major_locator(MultipleLocator(y_step))
 
             style_axes(ax)
@@ -191,8 +198,10 @@ def plot_lorenz():
                 ax.legend(
                     loc="lower center",
                     bbox_to_anchor=(0.5, 1.0),
+                    ncol=2,
                     handlelength=1,
                     handletextpad=0.5,
+                    columnspacing=1.0,
                     labelspacing=0.3,
                 )
             fig.savefig(
@@ -272,6 +281,6 @@ for name, err_list, eps_list in [
         })
 
 summary = pd.DataFrame(rows)
-print(summary.to_string(index=False, float_format=lambda x: f"{x:.4f}"))
+print(summary.to_string(index=False, float_format=lambda x: f"{x:.2f}"))
 summary.to_csv("lorenz_summary.csv", index=False)
 plot_lorenz()

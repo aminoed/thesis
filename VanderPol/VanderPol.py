@@ -246,11 +246,14 @@ def plot_vanderpol():
             ax.yaxis.set_major_locator(MultipleLocator(1.0))
 
             style_axes(ax)
-            if j==0:
+            if j==1:
                 ax.legend(
-                    loc="upper left",
-                    handlelength=1.5,
+                    loc="lower center",
+                    bbox_to_anchor=(0.5, 1.0),
+                    ncol=2,
+                    handlelength=1,
                     handletextpad=0.5,
+                    columnspacing=1.0,
                     labelspacing=0.3,
                 )
             fig.savefig(
