@@ -171,7 +171,10 @@ def fit_adaptive_degree(X_sub, y_sub, eps_star, alpha, beta, m_max):
                 return None
             return previous_model
 
-        previous_model = (w, float(eps), m)
+        candidate = (w, float(eps), m)
+
+        if previous_model is None or candidate[1] <= previous_model[1]:
+            previous_model = candidate
 
         if eps <= eps_star:
             return previous_model
@@ -333,7 +336,8 @@ def adaSubDiv(X, y, bounds, eps_star, alpha, beta, m_max, split_strategy="residu
             continue
 
         errors = compute_errors(X_sub, y_sub, w_sub, degree_sub)
-        split = best_split(X_sub, y_sub, idx, N_PAC, errors, fit_idx=fit_idx, split_strategy=split_strategy)
+        n_pac_current_degree = n_pac_for_degree(alpha, beta, dim, degree_sub)
+        split = best_split(X_sub, y_sub, idx, n_pac_current_degree, errors, fit_idx=fit_idx, split_strategy=split_strategy)
 
         if split is None:
             pieces.append({
@@ -381,7 +385,7 @@ def adaSubDiv(X, y, bounds, eps_star, alpha, beta, m_max, split_strategy="residu
         }
         DATA.n_splits += 1
 
-        if left_fit.size < N_PAC:
+        if left_fit.size < n_pac_current_degree:
             pieces.append({
                 "bounds": node_left["bounds"],
                 "w": w_sub,
@@ -395,7 +399,7 @@ def adaSubDiv(X, y, bounds, eps_star, alpha, beta, m_max, split_strategy="residu
             })
             S.append(node_right)
 
-        elif right_fit.size < N_PAC:
+        elif right_fit.size < n_pac_current_degree:
             pieces.append({
                 "bounds": node_right["bounds"],
                 "w": w_sub,
@@ -453,9 +457,10 @@ def serialize_piece(piece, X, y):
     return saved_piece
 
 
-data_file = f"lorenz_X.csv"
-# data_file = f"lorenz_Y.csv"
-# data_file = f"lorenz_Z.csv" 
+n = 100000
+data_file = f"lorenz_X_{n}.csv"
+# data_file = f"lorenz_Y_{n}.csv"
+# data_file = f"lorenz_Z_{n}.csv" 
 X = pd.read_csv(data_file)[["x0", "x1", "x2", "tau"]].to_numpy(dtype=float)
 y = pd.read_csv(data_file)["y0"].to_numpy(dtype=float)
 # y = pd.read_csv(data_file)["y1"].to_numpy(dtype=float)

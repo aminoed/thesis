@@ -14,7 +14,10 @@ BETA = 0.01
 M_MAX = 3
 SPLIT_STRATEGY = "residual_range"
 # SPLIT_STRATEGY = "maximum_residual"
-EPS_STAR = 0.05
+OUTPUT = 1
+
+EPS_STAR = 0.05 if OUTPUT == 0 else 0.1
+N_TRAIN = 200000 if OUTPUT == 0 else 100000
 
 
 class BuildStates:
@@ -488,11 +491,12 @@ def serialize_piece(piece, X, y):
     return saved_piece
 
 
-# data_file = f"vanderpol_X.csv"
-data_file = f"vanderpol_Y.csv"
-X = pd.read_csv(data_file)[["x0", "x1", "tau"]].to_numpy(dtype=float)
-# y = pd.read_csv(data_file)["y0"].to_numpy(dtype=float)
-y = pd.read_csv(data_file)["y1"].to_numpy(dtype=float)
+data_file = "vanderpol_X.csv" if OUTPUT == 0 else "vanderpol_Y.csv"
+
+data = pd.read_csv(data_file).iloc[:N_TRAIN]
+X = data[["x0", "x1", "tau"]].to_numpy(dtype=float)
+y = data[f"y{OUTPUT}"].to_numpy(dtype=float)
+
 sample_size, d = X.shape
 N_PAC = n_pac_for_degree(ALPHA, BETA, d, 1)
 init_bounds = [(X[:, i].min(), X[:, i].max()) for i in range(d)]
@@ -529,7 +533,7 @@ for degree in (1, 2, 3):
 
 tag = (
     f"a{ALPHA:g}_b{BETA:g}_k{sample_size}"
-    f"_e{EPS_STAR}_m{M_MAX}_s{SPLIT_STRATEGY}_NPAC{N_PAC}_y1"
+    f"_e{EPS_STAR}_m{M_MAX}_s{SPLIT_STRATEGY}_NPAC{N_PAC}_y{OUTPUT}"
 )
 
 os.makedirs("PAC_PIECE", exist_ok=True)

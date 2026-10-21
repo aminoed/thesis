@@ -31,7 +31,7 @@ def sample_vanderpol(Range, n):
     return X, Y
 
 
-X, Y = sample_vanderpol(Range, 100000)
+X, Y = sample_vanderpol(Range, 200000)
 pd.DataFrame(
     np.hstack((X, Y[:, 0].reshape(-1, 1))), columns=["x0", "x1", "tau", "y0"]
 ).to_csv("vanderpol_X.csv", index=False)

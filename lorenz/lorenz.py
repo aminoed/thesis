@@ -7,7 +7,7 @@ import json
 rng = np.random.default_rng(0)
 
 def Phi(x, dt):
-    sol = odeint(ode_model, x, [0.0, dt], rtol=1e-8, atol=1e-8)
+    sol = odeint(ode_model, x, [0.0, dt], rtol=1e-6, atol=1e-6)
     return sol[-1]
 
 def ode_model(x, t):
@@ -38,8 +38,8 @@ def select_piece(xs, pieces):
     #       tol is the tolerance parameter because sometimes the state will be out of the boundary we learned,
     #       and it can be adjusted to a greater number if the system throws the ValueError below (like 0.1)
     xs = np.asarray(xs, dtype=float).ravel()
-    tol = 0.1 * (x_max - x_min)
-    tol_vec = np.asarray(tol, dtype=float).ravel()
+    tol = 1e-5
+    # tol_vec = np.asarray(tol, dtype=float).ravel()
 
     d = len(xs)
     models = []
@@ -47,30 +47,33 @@ def select_piece(xs, pieces):
         select = True
         for i in range(d):
             lo, hi = p["bounds"][i]
-            tol = tol_vec[i]
+            # tol = tol_vec[i]
             if not (lo - tol <= xs[i] <= hi + tol):
+            # if not (lo <= xs[i] <= hi):
                 select = False
                 break
         if select:
             models.append(p)
 
-    # if not models:
-    #     raise ValueError(f"not able to find a matched model with the given factors: {xs}")
     if not models:
-        print("\n=== DEBUG: no matched piece ===")
-        print("xs:", xs)
-
-        for p_idx, p in enumerate(pieces[:5]):
-            print(f"\n-- checking piece {p_idx} --")
-            for i in range(d):
-                lo, hi = p["bounds"][i]
-                tol = tol_vec[i]
-                if not (lo - tol <= xs[i] <= hi + tol):
-                    print(f"[FAIL] dim={i}, xs={xs[i]:.6f}, "
-                          f"range=[{lo:.6f},{hi:.6f}], tol={tol:.6f}")
-                    break
-
         raise ValueError(f"not able to find a matched model with the given factors: {xs}")
+    # if not models:
+    #     print("\n=== DEBUG: no matched piece ===")
+    #     print("xs:", xs)
+
+    #     for p_idx, p in enumerate(pieces[:5]):
+    #         print(f"\n-- checking piece {p_idx} --")
+    #         for i in range(d):
+    #             lo, hi = p["bounds"][i]
+    #             # tol = tol_vec[i]
+    #             # if not (lo - tol <= xs[i] <= hi + tol):
+    #             if not (lo <= xs[i] <= hi):
+    #                 print(f"[FAIL] dim={i}, xs={xs[i]:.6f}, "
+    #                       f"range=[{lo:.6f},{hi:.6f}]")
+    #                       # f"range=[{lo:.6f},{hi:.6f}], tol={tol:.6f}")
+    #                 break
+
+        # raise ValueError(f"not able to find a matched model with the given factors: {xs}")
     return min(models, key=lambda p: p["epsilon"])
 
 
@@ -95,14 +98,14 @@ def predict(xs, pieces):
 
 global x_min, x_max
 x_min = np.array([-25.0, -25.0, 0.0, 0.0])
-x_max = np.array([25.0, 25.0, 50.0, 3.0])
-x_init = [15.0, 15.0, 36.0]
-x0 = [x_init[0], x_init[1], x_init[2], 0.0]
-dt = 0.03
+x_max = np.array([25.0, 25.0, 50.0, 1.0])
+x_init = [15.0, 5.0, 25.0]
+x0 = [x_init[0], x_init[1], x_init[2], 0.01]
+dt = 0.001
 
-pieces1_path = "PAC_PIECE/pieces_a0.2_b0.01_k100000_e0.01_m3_residual_range_NPAC97_X.json"
-pieces2_path = "PAC_PIECE/pieces_a0.2_b0.01_k100000_e0.01_m3_residual_range_NPAC97_Y.json"
-pieces3_path = "PAC_PIECE/pieces_a0.2_b0.01_k100000_e0.01_m3_residual_range_NPAC97_Z.json"
+pieces1_path = "PAC_PIECE/pieces_a0.2_b0.01_k100000_e0.1_m3_residual_range_NPAC107_X.json"
+pieces2_path = "PAC_PIECE/pieces_a0.2_b0.01_k100000_e0.1_m3_residual_range_NPAC107_Y.json"
+pieces3_path = "PAC_PIECE/pieces_a0.2_b0.01_k100000_e0.1_m3_residual_range_NPAC107_Z.json"
 
 pieces1 = load_model(pieces1_path)
 pieces2 = load_model(pieces2_path)  
@@ -113,7 +116,7 @@ ts.append(x0[3])
 pac_traj.append(x_init)
 true_traj.append(x_init)
 
-for i in range(101):
+for i in range(400):
     x0[3] += dt
     y1, _ = predict(x0, pieces1)
     y2, _ = predict(x0, pieces2)
@@ -126,8 +129,8 @@ for i in range(101):
 
     plt.plot(y1, y2, 'o', color='black')
     plt.plot(y[0], y[1], 'x', color='red')
-plt.xlim(-25.0, 25.0)
-plt.ylim(-25.0, 25.0)
+plt.xlim(-20.0, 20.0)
+plt.ylim(-20.0, 20.0)
 plt.xlabel("x0")
 plt.ylabel("x1")
 # plt.zlabel("x2")
@@ -143,24 +146,24 @@ axes[0].plot(ts, pac_traj[:, 0], "o", color="black", label="PAC")
 axes[0].plot(ts, true_traj[:, 0], "x", color="red", label="True")
 axes[0].set_xlabel("t")
 axes[0].set_ylabel("x0")
-axes[0].set_xlim(0, 4.0)
-axes[0].set_ylim(-25.0, 25.0)
+axes[0].set_xlim(0, 0.5)
+axes[0].set_ylim(-20.0, 20.0)
 axes[0].legend(loc="upper left")
 
 axes[1].plot(ts, pac_traj[:, 1], "o", color="black", label="PAC")
 axes[1].plot(ts, true_traj[:, 1], "x", color="red", label="True")
 axes[1].set_xlabel("t")
 axes[1].set_ylabel("x1")
-axes[1].set_xlim(0.0, 4.0)
-axes[1].set_ylim(-25.0, 25.0)
+axes[1].set_xlim(0.0, 0.5)
+axes[1].set_ylim(-20.0, 20.0)
 axes[1].legend(loc="upper left")
 
 axes[2].plot(ts, pac_traj[:, 2], "o", color="black", label="PAC")
 axes[2].plot(ts, true_traj[:, 2], "x", color="red", label="True")
 axes[2].set_xlabel("t")
 axes[2].set_ylabel("x2")
-axes[2].set_xlim(0.0, 4.0)
-axes[2].set_ylim(0.0, 50.0)
+axes[2].set_xlim(0.0, 0.5)
+axes[2].set_ylim(0.0, 45.0)
 axes[2].legend(loc="upper left")
 fig.tight_layout()
 fig.savefig("lorenz_xt.png", dpi=150)
