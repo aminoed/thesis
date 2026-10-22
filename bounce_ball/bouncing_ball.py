@@ -7,7 +7,7 @@ from matplotlib.ticker import AutoMinorLocator, MultipleLocator
 
 global x_min, x_max
 rng = np.random.default_rng(0)
-x_min = np.array([-3.0, -20.0, 0.0])
+x_min = np.array([-1.0, -20.0, 0.0])
 x_max = np.array([10.0, 20.0, 5])
 
 
@@ -258,8 +258,8 @@ def plot_bounce_ball():
 
 
 dt = 0.01
-x_init = [9.9, 0.0]
-eps_star = [0.05, 0.5]  # [height, velocity]
+x_init = [9.0, -6.9]
+eps_star = [0.02, 0.03]  # [height, velocity]
 
 
 pieces1_path = (

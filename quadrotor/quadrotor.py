@@ -271,7 +271,6 @@ with plt.rc_context(plot_style):
         color="#D97732",
         linestyle="none",
         marker="o",
-        markevery=1,
         markersize=1.5,
         markerfacecolor="white",
         markeredgewidth=1.2,

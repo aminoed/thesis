@@ -9,14 +9,14 @@ import pandas as pd
 import time
 
 
-ALPHA = 0.1
+ALPHA = 0.2
 BETA = 0.01
 M_MAX = 3
 SPLIT_STRATEGY = "residual_range"
 # SPLIT_STRATEGY = "maximum_residual"
-OUTPUT = 0
+OUTPUT = 1
 
-EPS_STAR = 0.05 if OUTPUT == 0 else 0.5
+EPS_STAR = 0.02 if OUTPUT == 0 else 0.03
 N_TRAIN = 200000
 
 class BuildStates:
