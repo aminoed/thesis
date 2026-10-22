@@ -1,33 +1,66 @@
-from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from sympy import *
 
 rng = np.random.default_rng(0)
 x_min = np.array([-3.0, -20.0, 0.0])
-x_max = np.array([10.0, 20.0, 5])
+x_max = np.array([10.0, 20.0, 5.0])
 
 
 def Phi_hybrid(x, dt):
-    sol = odeint(ode_model, x, [0.0, dt], rtol=1e-6, atol=1e-6)
-    
-    y = sol[-1]
-    if y[0] <= 0:
-        y[0] = 0.0
-        y[1] = -0.8 * y[1]
+    h = float(x[0])
+    v = float(x[1])
+    t_left = float(dt)
 
-    return y
+    if t_left <= 0.0:
+        return np.array([h, v], dtype=float)
 
+    while t_left > 0.0:
+        if h <= 0.0 and v <= 0.0:
+            h = 0.0
+            v = -0.8 * v
+            if v <= 1e-12:
+                return np.array([0.0, 0.0], dtype=float)
+
+        #  h(t) = h(0) + v(0) t - 0.5 * 9.81 * t^2
+        #  v(t) = v(0) - g t
+        #  solve for t when h(t) = 0
+        # args = [0.5 * 9.81, -v, -h]
+        # np.roots(args)
+        t = symbols('t')
+        eq = Eq(h + v * t - 0.5 * 9.81 * t**2, 0)
+        t_hit = solve(eq, t)
+
+        # keep the smallest positive real root
+        pos = [float(r) for r in t_hit if getattr(r, "is_real", True) and float(r) > 1e-12]
+        t_hit = min(pos) if pos else None
+
+
+        # no impact in remaining time 
+        if t_hit is None or t_hit > t_left:
+            h = h + v * t_left - 0.5 * 9.81 * t_left ** 2
+            v = v - 9.81 * t_left
+            if h < 0.0:
+                h = 0.0
+                v = -0.8 * v
+            break
+
+        # fly to impact, then bounce
+        v = v - 9.81 * t_hit
+        h = 0.0
+        v = -0.8 * v
+        t_left -= t_hit
+
+        if abs(v) <= 1e-12:
+            return np.array([0.0, 0.0], dtype=float)
+
+    return np.array([h, v], dtype=float)
 
 def sample_bounce_ball(nx):
     X = rng.uniform(x_min, x_max, size=(nx, 3))
     Y = np.array([Phi_hybrid(xi[:2], xi[2]) for xi in X])
     return X, Y
-
-
-def ode_model(x, t):
-    dxdt = [x[1], -9.81]
-    return dxdt
 
 
 n = 200000
@@ -46,3 +79,15 @@ plt.xlabel("x")
 plt.ylabel("y")
 plt.savefig(f"bounce_ball_xy_{n}.png", dpi=150)
 plt.show()
+
+
+# test the Phi_hybrid function
+# x_init = [9.9, 0.0]
+# query_times = np.arange(0.0, 5.0, 0.01)
+# true_traj = np.array([Phi_hybrid(x_init, t) for t in query_times])
+
+# plt.plot(query_times, true_traj[:, 0], label="x")
+# plt.plot(query_times, true_traj[:, 1], label="y")
+# plt.legend()
+# plt.savefig(f"bounce_ball_traj.png", dpi=150)
+# plt.show()

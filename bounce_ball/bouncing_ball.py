@@ -12,13 +12,53 @@ x_max = np.array([10.0, 20.0, 5])
 
 
 def Phi_hybrid(x, dt):
-    sol = odeint(ode_model, x, [0.0, dt], rtol=1e-6, atol=1e-6)
-    y = sol[-1]
-    if y[0] <= 0:
-        y[0] = 0.0
-        y[1] = -0.8 * y[1]
-    return y
+    h = float(x[0])
+    v = float(x[1])
+    t_left = float(dt)
 
+    if t_left <= 0.0:
+        return np.array([h, v], dtype=float)
+
+    while t_left > 0.0:
+        if h <= 0.0 and v <= 0.0:
+            h = 0.0
+            v = -0.8 * v
+            if v <= 1e-12:
+                return np.array([0.0, 0.0], dtype=float)
+
+        #  h(t) = h(0) + v(0) t - 0.5 * 9.81 * t^2
+        #  v(t) = v(0) - g t
+        #  solve for t when h(t) = 0
+        args = [0.5 * 9.81, -v, -h]
+        t_hit = np.roots(args)
+        # t = symbols('t')
+        # eq = Eq(h + v * t - 0.5 * 9.81 * t**2, 0)
+        # t_hit = solve(eq, t)
+
+        # keep the smallest positive real root
+        pos = [float(r) for r in t_hit if getattr(r, "is_real", True) and float(r) > 1e-12]
+        t_hit = min(pos) if pos else None
+
+
+        # no impact in remaining time 
+        if t_hit is None or t_hit > t_left:
+            h = h + v * t_left - 0.5 * 9.81 * t_left ** 2
+            v = v - 9.81 * t_left
+            if h < 0.0:
+                h = 0.0
+                v = -0.8 * v
+            break
+
+        # fly to impact, then bounce
+        v = v - 9.81 * t_hit
+        h = 0.0
+        v = -0.8 * v
+        t_left -= t_hit
+
+        if abs(v) <= 1e-12:
+            return np.array([0.0, 0.0], dtype=float)
+
+    return np.array([h, v], dtype=float)
 
 
 def ode_model(x, t):
