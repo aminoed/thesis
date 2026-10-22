@@ -1,8 +1,10 @@
+import json
 
 import numpy as np
+import pandas as pd
 from scipy.integrate import solve_ivp
-import matplotlib
 import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoMinorLocator, MultipleLocator
 
 g = 9.81
 R = 0.1
@@ -16,8 +18,54 @@ Jz = 2/5*M*R**2 + 4*M_rotor*(l**2)
 
 TARGET_HEIGHT = 1.0
 
+dt = 0.025
+rng = np.random.default_rng(0)
+
+
+x_min = np.array([
+    -3.0, -3.0, -0.5, -2.0, -2.0, -3.0,
+    -0.2, -0.2, -0.4, -0.5, -0.5, -0.5,
+])
+x_max = np.array([
+    3.0, 3.0, 1.6, 2.0, 2.0, 1.0,
+    0.2, 0.2, 0.4, 0.5, 0.5, 0.5,
+])
+
+MODEL_PATHS = [
+    "PAC_PIECE/"
+    f"pieces_a0.05_b1e-08_k50000_e0.01_m3_sresidual_range_NPAC1297_y{j}.json"
+    for j in range(12)
+]
+# MODEL_PATHS = [
+#     "PAC_PIECE/"
+#     f"pieces_a0.05_b1e-08_k200000_e0.01_m3_sresidual_range_NPAC1297_y{j}.json"
+#     for j in range(12)
+# ]
+
+
+def Phi(x):
+    x = np.asarray(x, dtype=float)
+    if x.shape != (12,) or not np.all(np.isfinite(x)):
+        raise ValueError("x must contain 12 finite physical states")
+
+    solution = solve_ivp(
+        quadrotor_ode,
+        t_span=(0.0, dt),
+        y0=np.append(x, 0.0),
+        t_eval=[dt],
+        method="RK45",
+        max_step=dt,
+        rtol=1e-9,
+        atol=1e-11,
+    )
+    if not solution.success:
+        raise RuntimeError(f"Integration failed: {solution.message}")
+    next_state = solution.y[:12, -1]
+    
+    return next_state
+
 def quadrotor_ode(t, state):
-    x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, t = state
+    x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, clock = state
 
     F, T_x, T_y = pd_controller(state)
     dx1 = np.cos(x8)*np.cos(x9)*x4 + (np.sin(x7)*np.sin(x8)*np.cos(x9) - np.cos(x7)*np.sin(x9))*x5 + (np.cos(x7)*np.sin(x8)*np.cos(x9) + np.sin(x7)*np.sin(x9))*x6
@@ -50,53 +98,188 @@ def pd_controller(state, target_height=TARGET_HEIGHT, target_roll=0.0, target_pi
     T_y = -(x8 - target_pitch) - x11
     return F, T_x, T_y
 
-def simulate(initial_state, total_time, time_step):
-    # Integrate one trajectory over [0, 5] seconds.
-    if initial_state is None:
-        initial_state = np.zeros(13)
-    initial_state = np.asarray(initial_state, dtype=float)
-    
-
-    sample_count = round(total_time / time_step) + 1
-    output_times = np.linspace(0.0, total_time, sample_count)
-
-    solution = solve_ivp(
-        quadrotor_ode,
-        t_span=(0.0, total_time),
-        y0=initial_state,
-        t_eval=output_times,
-        method="RK45",
-        max_step=time_step,
-        rtol=1e-9,
-        atol=1e-11,
-    )
-    if not solution.success:
-        raise RuntimeError(f"Integration failed: {solution.message}")
-    return solution
+def sample_quadrotor(n, low=x_min, high=x_max):
+    X = rng.uniform(low, high, size=(n, 12))
+    Y = np.array([Phi(xi) for xi in X])
+    return X, Y
 
 
-def sample_quadrotor(n):
-    initial_state = np.zeros(13)
-    initial_state[:6] = rng.uniform(-0.4, 0.4, size=6)
-    return initial_state
+def load_model(model_path):
+    with open(model_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    pieces = []
+    for p in data:
+        exponents = p.get("exponents")
+        pieces.append({
+            "bounds": [tuple(map(float, b)) for b in p["bounds"]],
+            "w": np.asarray(p["w"], dtype=float),
+            "degree": int(p.get("degree", 1)),
+            "exponents": [tuple(e) for e in exponents] if exponents is not None else None,
+            "epsilon": float(p.get("epsilon", 0.0)),
+            "n_sample": int(p.get("n_sample", len(p.get("idx", [])))),
+            "idx": np.asarray(p.get("idx", []), dtype=int),
+        })
+    return pieces
 
-rng = np.random.default_rng(0)
-initial_state = np.zeros(13)
+
+def select_piece(xs, pieces):
+    xs = np.asarray(xs, dtype=float).ravel()
+    tol = 1e-5
+    models = []
+    for p in pieces:
+        if len(p["bounds"]) != xs.size:
+            raise ValueError("model input dimension does not match state dimension")
+        if all(
+            lo - tol <= xs[i] <= hi + tol
+            for i, (lo, hi) in enumerate(p["bounds"])
+        ):
+            models.append(p)
+    if not models:
+        raise ValueError(f"not able to find a matched model for state: {xs}")
+    return min(models, key=lambda p: p["epsilon"])
+
+
+def predict(xs, pieces):
+    xs = np.asarray(xs, dtype=float).ravel()
+    p = select_piece(xs, pieces)
+    w = p["w"]
+    if p["exponents"] is not None:
+        phi = np.array([
+            np.prod(xs ** np.asarray(e)) for e in p["exponents"]
+        ], dtype=float)
+        if w.size != phi.size:
+            raise ValueError(f"w size ({w.size}) != feature size ({phi.size})")
+        y_pred = float(np.dot(w, phi))
+    else:
+        if w.size != xs.size + 1:
+            raise ValueError(f"w size ({w.size}) != input size + 1 ({xs.size + 1})")
+        y_pred = float(w[0] + np.dot(w[1:], xs))
+    if not np.isfinite(y_pred):
+        raise ValueError("model returned a non-finite prediction")
+    return y_pred, p
+
+
+# X, Y = sample_quadrotor(50000)
+# input_columns = [f"x{i}" for i in range(12)]
+# for j in range(12):
+#     data = np.hstack((X, Y[:, j].reshape(-1, 1)))
+#     filename = f"quadrotor_y{j}.csv"
+#     pd.DataFrame(data, columns=input_columns + [f"y{j}"]).to_csv(
+#         filename, index=False
+#     )
+models = [load_model(path) for path in MODEL_PATHS]
+
+initial_state = np.zeros(12)
 initial_state[:6] = rng.uniform(-0.4, 0.4, size=6)
+x0 = np.asarray(initial_state, dtype=float).copy()
+x1 = x0.copy()
+pac_traj = [x0.copy()]
+true_traj = [x1.copy()]
+for i in range(200):
+    # Compute every component from the same old x0 before replacing it.
+    x0 = np.array([predict(x0, pieces)[0] for pieces in models])
+    x1 = Phi(x1)
+    pac_traj.append(x0.copy())
+    true_traj.append(x1.copy())
+ts = dt * np.arange(200 + 1)
+pac_traj = np.asarray(pac_traj)
+true_traj = np.asarray(true_traj)
+    # plt.plot(ts, pac_traj[:, 2], "o", color="black", markersize=3, label="PAC")
+    # plt.plot(ts, true_traj[:, 2], "-", color="red", label="True")
+    # plt.axhline(TARGET_HEIGHT, color="gray", linestyle="--", label="Target: 1 m")
+    # plt.xlabel("Time t (s)")
+    # plt.ylabel("Height x3 (m)")
+    # plt.grid()
+    # plt.legend()
+    # plt.savefig("height.png", dpi=150)
+    # plt.show()
+plot_style = {
+    "font.size": 24,
+    "axes.labelsize": 28,
+    "axes.labelpad": 8,
+    "axes.edgecolor": "#202020",
+    "axes.labelcolor": "#303741",
+    "axes.linewidth": 1.1,
+    "axes.spines.top": False,
+    "axes.spines.right": False,
+    "axes.axisbelow": True,
+    "xtick.color": "#202020",
+    "ytick.color": "#202020",
+    "xtick.direction": "out",
+    "ytick.direction": "out",
+    "xtick.labelsize": 24,
+    "ytick.labelsize": 24,
+    "legend.fontsize": 17,
+    "legend.frameon": False,
+    "figure.facecolor": "white",
+    "axes.facecolor": "white",
+    "savefig.facecolor": "white",
+    "pdf.fonttype": 42,
+}
 
-solution = simulate(initial_state, 5.0, 0.025)
+with plt.rc_context(plot_style):
+    fig, ax = plt.subplots(figsize=(6.0, 4.5), layout="constrained")
 
-time = solution.t
-height = solution.y[2]
+    ax.axhline(
+        TARGET_HEIGHT,
+        color="#949DA8",
+        linestyle=(0, (5, 4)),
+        linewidth=1.2,
+        zorder=1,
+    )
+    ax.plot(
+        ts, true_traj[:, 2],
+        color="#326A9F",
+        linewidth=3.0,
+        label="ODE Solution",
+        zorder=2,
+    )
+    ax.plot(
+        ts, pac_traj[:, 2],
+        color="#D97732",
+        linestyle="none",
+        marker="o",
+        markevery=1,  
+        markersize=1.5,
+        markerfacecolor="white",
+        markeredgewidth=1.2,
+        label="PAC Estimation",
+        zorder=3,
+    )
+    ax.annotate(
+        "Target: 1 m",
+        xy=(0.98, TARGET_HEIGHT),
+        xycoords=ax.get_yaxis_transform(),
+        xytext=(0, 10),
+        textcoords="offset points",
+        ha="right", va="bottom",
+        fontsize=13, color="#69737F",
+    )
 
-plt.plot(time, height, label="x3(t)")
-plt.axhline(1.0, color="gray", linestyle="--", label="Target: 1 m")
-plt.xlabel("Time t (s)")
-plt.ylabel("Height x3 (m)")
-plt.grid()
-plt.legend()
-plt.show()
-plt.savefig("height.png", dpi=150)
+    ax.set_xlabel(r"$t$ (s)")
+    ax.set_ylabel(r"$x_3$ (m)")
+    ax.set_xlim(ts[0] - 0.08, ts[-1] + 0.08)
+    ax.margins(y=0.12)
+    ax.xaxis.set_major_locator(MultipleLocator(1.0))
+    ax.yaxis.set_major_locator(MultipleLocator(0.5))
+    ax.xaxis.set_minor_locator(AutoMinorLocator(2))
+    ax.yaxis.set_minor_locator(AutoMinorLocator(2))
+    ax.tick_params(which="major", length=4, width=0.8)
+    ax.tick_params(which="minor", length=2, width=0.6)
+    ax.grid(
+        which="major", color="#DCE1E7", linewidth=0.6,
+        linestyle="--", alpha=0.8,
+    )
+    ax.legend(
+        loc="lower center",
+        bbox_to_anchor=(0.5, 1.01),
+        ncol=2,
+        handlelength=1.3,
+        handletextpad=0.5,
+        columnspacing=1.0,
+        borderaxespad=0.0,
+    )
 
-print(f"Height at 5 s: {height[-1]:.6f} m")
-print(f"Maximum sampled height: {height.max():.6f} m")
+    fig.savefig("height.png", dpi=300)
+    fig.savefig("height.pdf")
+    plt.show()

@@ -9,15 +9,15 @@ import pandas as pd
 import time
 
 
-ALPHA = 0.2
-BETA = 0.01
+ALPHA = 0.05
+BETA = 1e-8
 M_MAX = 3
 SPLIT_STRATEGY = "residual_range"
 # SPLIT_STRATEGY = "maximum_residual"
-OUTPUT = 1
 
-EPS_STAR = 0.05 if OUTPUT == 0 else 0.1
-N_TRAIN = 200000 if OUTPUT == 0 else 100000
+
+EPS_STAR = 0.01 
+N_TRAIN = 200000 
 
 
 class BuildStates:
@@ -490,70 +490,71 @@ def serialize_piece(piece, X, y):
     }
     return saved_piece
 
+for OUTPUT in range(12):
+    data_file = f"quadrotor_y{OUTPUT}.csv"
 
-data_file = "vanderpol_X.csv" if OUTPUT == 0 else "vanderpol_Y.csv"
+    data = pd.read_csv(data_file).iloc[:N_TRAIN]
+    input_columns = [f"x{i}" for i in range(12)]
+    X = data[input_columns].to_numpy(dtype=float)
+    y = data[f"y{OUTPUT}"].to_numpy(dtype=float)
 
-data = pd.read_csv(data_file).iloc[:N_TRAIN]
-X = data[["x0", "x1", "tau"]].to_numpy(dtype=float)
-y = data[f"y{OUTPUT}"].to_numpy(dtype=float)
+    sample_size, d = X.shape
+    N_PAC = n_pac_for_degree(ALPHA, BETA, d, 1)
+    init_bounds = [(X[:, i].min(), X[:, i].max()) for i in range(d)]
 
-sample_size, d = X.shape
-N_PAC = n_pac_for_degree(ALPHA, BETA, d, 1)
-init_bounds = [(X[:, i].min(), X[:, i].max()) for i in range(d)]
+    DATA.__init__()
+    DATA.start_timing()
+    pieces = adaSubDiv(
+        X, y, init_bounds, EPS_STAR, ALPHA, BETA, M_MAX, split_strategy=SPLIT_STRATEGY
+    )
+    DATA.end_timing()
 
-DATA.__init__()
-DATA.start_timing()
-pieces = adaSubDiv(
-    X, y, init_bounds, EPS_STAR, ALPHA, BETA, M_MAX, split_strategy=SPLIT_STRATEGY
-)
-DATA.end_timing()
-
-saved_pieces = []
-for piece in pieces:
-    saved_piece = serialize_piece(piece, X, y)
-    saved_pieces.append(saved_piece)
-
-performance = DATA.to_dict()
-performance["alpha"] = ALPHA
-performance["beta"] = BETA
-performance["m_max"] = M_MAX
-performance["split_strategy"] = SPLIT_STRATEGY
-performance["epsilon_threshold"] = EPS_STAR
-performance["sample_size"] = sample_size
-performance["n_pac_linear"] = N_PAC
-performance["epsilon_low"] = min(p["epsilon"] for p in pieces)
-performance["epsilon_high"] = max(p["epsilon"] for p in pieces)
-
-for degree in (1, 2, 3):
-    count = 0
+    saved_pieces = []
     for piece in pieces:
-        if piece["degree"] == degree:
-            count += 1
-    performance[f"degree_{degree}_pieces"] = count
+        saved_piece = serialize_piece(piece, X, y)
+        saved_pieces.append(saved_piece)
 
-tag = (
-    f"a{ALPHA:g}_b{BETA:g}_k{sample_size}"
-    f"_e{EPS_STAR}_m{M_MAX}_s{SPLIT_STRATEGY}_NPAC{N_PAC}_y{OUTPUT}"
-)
+    performance = DATA.to_dict()
+    performance["alpha"] = ALPHA
+    performance["beta"] = BETA
+    performance["m_max"] = M_MAX
+    performance["split_strategy"] = SPLIT_STRATEGY
+    performance["epsilon_threshold"] = EPS_STAR
+    performance["sample_size"] = sample_size
+    performance["n_pac_linear"] = N_PAC
+    performance["epsilon_low"] = min(p["epsilon"] for p in pieces)
+    performance["epsilon_high"] = max(p["epsilon"] for p in pieces)
 
-os.makedirs("PAC_PIECE", exist_ok=True)
-os.makedirs("PAC_PERF", exist_ok=True)
+    for degree in (1, 2, 3):
+        count = 0
+        for piece in pieces:
+            if piece["degree"] == degree:
+                count += 1
+        performance[f"degree_{degree}_pieces"] = count
 
-model_file = f"PAC_PIECE/pieces_{tag}.json"
-performance_file = f"PAC_PERF/pac_build_{tag}.json"
+    tag = (
+        f"a{ALPHA:g}_b{BETA:g}_k{sample_size}"
+        f"_e{EPS_STAR}_m{M_MAX}_s{SPLIT_STRATEGY}_NPAC{N_PAC}_y{OUTPUT}"
+    )
 
-with open(model_file, "w", encoding="utf-8") as model_output:
-    json.dump(saved_pieces, model_output, ensure_ascii=False, indent=2)
-    model_output.write("\n")
+    os.makedirs("PAC_PIECE", exist_ok=True)
+    os.makedirs("PAC_PERF", exist_ok=True)
 
-with open(performance_file, "w", encoding="utf-8") as performance_output:
-    json.dump(performance, performance_output, ensure_ascii=False, indent=2)
-    performance_output.write("\n")
+    model_file = f"PAC_PIECE/pieces_{tag}.json"
+    performance_file = f"PAC_PERF/pac_build_{tag}.json"
 
-print(f"alpha={ALPHA}, m_max={M_MAX}, split={SPLIT_STRATEGY}")
-print(f"Total pieces: {DATA.n_pieces}")
-print(f"Total splits: {DATA.n_splits}")
-print(f"LP solved: {DATA.lp_count}")
-print(f"Build time: {DATA.t_total:.4f} seconds")
-print(f"Saved model: {model_file}")
-print(f"Saved performance: {performance_file}")
+    with open(model_file, "w", encoding="utf-8") as model_output:
+        json.dump(saved_pieces, model_output, ensure_ascii=False, indent=2)
+        model_output.write("\n")
+
+    with open(performance_file, "w", encoding="utf-8") as performance_output:
+        json.dump(performance, performance_output, ensure_ascii=False, indent=2)
+        performance_output.write("\n")
+
+    print(f"alpha={ALPHA}, m_max={M_MAX}, split={SPLIT_STRATEGY}")
+    print(f"Total pieces: {DATA.n_pieces}")
+    print(f"Total splits: {DATA.n_splits}")
+    print(f"LP solved: {DATA.lp_count}")
+    print(f"Build time: {DATA.t_total:.4f} seconds")
+    print(f"Saved model: {model_file}")
+    print(f"Saved performance: {performance_file}")
