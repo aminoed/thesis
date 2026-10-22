@@ -131,7 +131,7 @@ def fit_polynomial_pac(X_sub, y_sub, degree):
     c = np.zeros(M + 1)
     c[-1] = 1.0
 
-    bounds = [(None, None)] * M + [(1e-4, None)]
+    bounds = [(None, None)] * M + [(0, None)]
 
     t_s = time.perf_counter()
     res = optimize.linprog(c, A_ub=A, b_ub=b, bounds=bounds, method="highs")
@@ -497,6 +497,11 @@ for OUTPUT in range(12):
     sample_size, d = X.shape
     N_PAC = n_pac_for_degree(ALPHA, BETA, d, 1)
     init_bounds = [(X[:, i].min(), X[:, i].max()) for i in range(d)]
+
+    if OUTPUT == 11 or OUTPUT == 8:
+        EPS_STAR = 0.0001
+    else:
+        EPS_STAR = 0.01
 
     DATA.__init__()
     DATA.start_timing()

@@ -34,7 +34,9 @@ x_min[:2] = [-5.0, -5.0]
 x_max[:2] = [5.0, 5.0]
 MODEL_PATHS = [
     "PAC_PIECE/"
-    f"pieces_a0.05_b1e-08_k50000_e0.01_m3_sresidual_range_NPAC1297_y{j}_new.json"
+    f"pieces_a0.05_b1e-08_k50000"
+    f"_e{0.0001 if j in (8, 11) else 0.01}"
+    f"_m3_sresidual_range_NPAC1297_y{j}_new.json"
     for j in range(12)
 ]
 # MODEL_PATHS = [
@@ -125,7 +127,7 @@ def load_model(model_path):
 
 def select_piece(xs, pieces):
     xs = np.asarray(xs, dtype=float).ravel()
-    tol = 1e-5
+    tol = 1e-12
     models = []
     for p in pieces:
         if len(p["bounds"]) != xs.size:
