@@ -14,7 +14,7 @@ BETA = 0.01
 M_MAX = 3
 SPLIT_STRATEGY = "residual_range"
 # SPLIT_STRATEGY = "maximum_residual"
-OUTPUT = 1
+OUTPUT = 0
 
 EPS_STAR = 0.02 if OUTPUT == 0 else 0.03
 N_TRAIN = 200000

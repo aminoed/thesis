@@ -1,11 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-# from sympy import *
 
 rng = np.random.default_rng(0)
-x_min = np.array([-1.0, -20.0, 0.0])
-x_max = np.array([10.0, 20.0, 5.0])
+x_min = np.array([-1.0, -10.0, 0.0])
+x_max = np.array([10.0, 10.0, 5.0])
 g = 9.81
 alpha = 0.8
 
