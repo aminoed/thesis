@@ -249,85 +249,53 @@ plot_style = {
     "pdf.fonttype": 42,
 }
 
+state_ylabels = [
+    rf"$x_{{{j+1}}}$ ({unit})" for j, unit in enumerate(state_units)
+]
+state_filenames = [f"x{j+1}" for j in range(12)]
+
 with plt.rc_context(plot_style):
-    fig, ax = plt.subplots(figsize=(6.0, 4.5), layout="constrained")
-
-    ax.axhline(
-        TARGET_HEIGHT,
-        color="red",
-        linestyle=(0, (5, 4)),
-        linewidth=1.8,
-        zorder=1,
-    )
-    ax.plot(
-        ts, true_traj[:, 2],
-        color="#326A9F",
-        linewidth=3.0,
-        label="ODE Solution",
-        zorder=2,
-    )
-    ax.plot(
-        ts, pac_traj[:, 2],
-        color="#D97732",
-        linestyle="none",
-        marker="o",
-        markersize=1.5,
-        markerfacecolor="white",
-        markeredgewidth=1.2,
-        label="PAC Estimation",
-        zorder=3,
-    )
-    ax.annotate(
-        "Target: 1 m",
-        xy=(0.98, TARGET_HEIGHT),
-        xycoords=ax.get_yaxis_transform(),
-        xytext=(0, 10),
-        textcoords="offset points",
-        ha="right", va="bottom",
-        fontsize=13, color="#202020",
-    )
-
-    ax.set_xlabel(r"$t$ (s)")
-    ax.set_ylabel(r"$x_3$ (m)")
-    ax.set_xlim(ts[0] - 0.08, ts[-1] + 0.08)
-    ax.margins(y=0.12)
-    ax.xaxis.set_major_locator(MultipleLocator(1.0))
-    ax.yaxis.set_major_locator(MultipleLocator(0.5))
-    ax.xaxis.set_minor_locator(AutoMinorLocator(2))
-    ax.yaxis.set_minor_locator(AutoMinorLocator(2))
-    ax.tick_params(which="major", length=4, width=0.8)
-    ax.tick_params(which="minor", length=2, width=0.6)
-    ax.grid(
-        which="major", color="#DCE1E7", linewidth=0.6,
-        linestyle="--", alpha=0.8,
-    )
-    ax.legend(
-        loc="lower center",
-        bbox_to_anchor=(0.5, 1.01),
-        ncol=2,
-        handlelength=1.3,
-        handletextpad=0.5,
-        columnspacing=1.0,
-        borderaxespad=0.0,
-    )
-
-    fig.savefig("height.png", dpi=300)
-    fig.savefig("height.pdf")
-
-    # Extra state plots use the same style as the height figure above.
-    # w is body-frame vertical velocity; at zero attitude, dz/dt = -w.
-    for j, ylabel, filename in [
-        (5, r"$w$ (m/s)", "vertical_velocity"),
-        (6, r"$\phi$ (rad)", "roll"),
-        (7, r"$\theta$ (rad)", "pitch"),
-    ]:
+    for j, ylabel, filename in zip(range(12), state_ylabels, state_filenames):
         fig, ax = plt.subplots(figsize=(6.0, 4.5), layout="constrained")
-        ax.plot(ts, true_traj[:, j], color="#326A9F", linewidth=3.0,
-                label="ODE Solution", zorder=2)
-        ax.plot(ts, pac_traj[:, j], color="#D97732", linestyle="none",
-                marker="o", markevery=1, markersize=1.5,
-                markerfacecolor="white", markeredgewidth=1.2,
-                label="PAC Estimation", zorder=3)
+
+        if j == 2:
+            ax.axhline(
+                TARGET_HEIGHT,
+                color="red",
+                linestyle=(0, (5, 4)),
+                linewidth=1.8,
+                zorder=1,
+            )
+            ax.annotate(
+                "Target: 1 m",
+                xy=(0.98, TARGET_HEIGHT),
+                xycoords=ax.get_yaxis_transform(),
+                xytext=(0, 10),
+                textcoords="offset points",
+                ha="right", va="bottom",
+                fontsize=13, color="#202020",
+            )
+            ax.yaxis.set_major_locator(MultipleLocator(0.5))
+
+        ax.plot(
+            ts, true_traj[:, j],
+            color="#326A9F",
+            linewidth=3.0,
+            label="ODE Solution",
+            zorder=2,
+        )
+        ax.plot(
+            ts, pac_traj[:, j],
+            color="#D97732",
+            linestyle="none",
+            marker="o",
+            markersize=1.5,
+            markerfacecolor="white",
+            markeredgewidth=1.2,
+            label="PAC Estimation",
+            zorder=3,
+        )
+
         ax.set_xlabel(r"$t$ (s)")
         ax.set_ylabel(ylabel)
         ax.set_xlim(ts[0] - 0.08, ts[-1] + 0.08)
@@ -337,11 +305,21 @@ with plt.rc_context(plot_style):
         ax.yaxis.set_minor_locator(AutoMinorLocator(2))
         ax.tick_params(which="major", length=4, width=0.8)
         ax.tick_params(which="minor", length=2, width=0.6)
-        ax.grid(which="major", color="#DCE1E7", linewidth=0.6,
-                linestyle="--", alpha=0.8)
-        ax.legend(loc="lower center", bbox_to_anchor=(0.5, 1.01), ncol=2,
-                  handlelength=1.3, handletextpad=0.5, columnspacing=1.0,
-                  borderaxespad=0.0)
+        ax.grid(
+            which="major", color="#DCE1E7", linewidth=0.6,
+            linestyle="--", alpha=0.8,
+        )
+        if j%3 == 1:
+            ax.legend(
+                loc="lower center",
+                bbox_to_anchor=(0.5, 1.01),
+                ncol=2,
+                handlelength=1.3,
+                handletextpad=0.5,
+                columnspacing=1.0,
+                borderaxespad=0.0,
+            )
+
         fig.savefig(f"{filename}.png", dpi=300)
         fig.savefig(f"{filename}.pdf")
 
