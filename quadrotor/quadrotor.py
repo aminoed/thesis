@@ -35,7 +35,7 @@ x_max[:2] = [5.0, 5.0]
 MODEL_PATHS = [
     "PAC_PIECE/"
     f"pieces_a0.05_b1e-08_k50000"
-    f"_e{0.0001 if j in (8, 11) else 0.01}"
+    f"_e{0.0001 if j in (8, 11, 0, 3) else 0.01}"
     f"_m3_sresidual_range_NPAC1297_y{j}_new.json"
     for j in range(12)
 ]
@@ -325,28 +325,6 @@ with plt.rc_context(plot_style):
         fig.savefig(f"{filename}.png", dpi=300)
         fig.savefig(f"{filename}.pdf")
 
-    # Every time sample is included in the rolling-error curves.
-    fig, axes = plt.subplots(2, 1, figsize=(6.0, 6.5), sharex=True,
-                             layout="constrained")
-    for ax, j, ylabel in [
-        (axes[0], 2, r"$|e_z|$ (m)"),
-        (axes[1], 5, r"$|e_w|$ (m/s)"),
-    ]:
-        ax.plot(ts, abs_error[:, j], color="#D97732", linewidth=2.0)
-        ax.set_ylabel(ylabel)
-        ax.set_xlim(ts[0], ts[-1])
-        ax.ticklabel_format(axis="y", style="sci", scilimits=(-2, 2),
-                            useMathText=True)
-        ax.xaxis.set_major_locator(MultipleLocator(1.0))
-        ax.xaxis.set_minor_locator(AutoMinorLocator(2))
-        ax.yaxis.set_minor_locator(AutoMinorLocator(2))
-        ax.tick_params(which="major", length=4, width=0.8)
-        ax.tick_params(which="minor", length=2, width=0.6)
-        ax.grid(which="major", color="#DCE1E7", linewidth=0.6,
-                linestyle="--", alpha=0.8)
-    axes[-1].set_xlabel(r"$t$ (s)")
-    fig.savefig("rolling_error.png", dpi=300)
-    fig.savefig("rolling_error.pdf")
 
 # Compare one full 12-output PAC step with an ODE step on the SAME states.
 # Warm-up and JSON loading are excluded; no changes to the rollout above.

@@ -7,8 +7,8 @@ from matplotlib.ticker import AutoMinorLocator, MultipleLocator
 
 global x_min, x_max
 rng = np.random.default_rng(0)
-x_min = np.array([-1.0, -20.0, 0.0])
-x_max = np.array([10.0, 20.0, 5])
+x_min = np.array([-1.0, -10.0, 0.0])
+x_max = np.array([10.0, 10.0, 5.0])
 
 
 def Phi_hybrid(x, dt):
