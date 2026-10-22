@@ -25,6 +25,10 @@ def Phi_hybrid(x, dt):
             v = -0.8 * v
             if v <= 1e-12:
                 return np.array([0.0, 0.0], dtype=float)
+        if h == 0.0:
+            t_rest = 2.0 * v / (9.81 * (1.0 - 0.8))
+            if t_left >= t_rest:
+                return np.array([0.0, 0.0], dtype=float)
 
         #  h(t) = h(0) + v(0) t - 0.5 * 9.81 * t^2
         #  v(t) = v(0) - g t
@@ -36,7 +40,7 @@ def Phi_hybrid(x, dt):
         # t_hit = solve(eq, t)
 
         # keep the smallest positive real root
-        pos = [float(r) for r in t_hit if getattr(r, "is_real", True) and float(r) > 1e-12]
+        pos = [float(r.real) for r in t_hit if np.isreal(r) and r.real > 0.0]
         t_hit = min(pos) if pos else None
 
 

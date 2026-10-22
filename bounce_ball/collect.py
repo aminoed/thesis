@@ -1,12 +1,13 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from sympy import *
+# from sympy import *
 
 rng = np.random.default_rng(0)
 x_min = np.array([-3.0, -20.0, 0.0])
 x_max = np.array([10.0, 20.0, 5.0])
-
+g = 9.81
+alpha = 0.8
 
 def Phi_hybrid(x, dt):
     h = float(x[0])
@@ -22,18 +23,22 @@ def Phi_hybrid(x, dt):
             v = -0.8 * v
             if v <= 1e-12:
                 return np.array([0.0, 0.0], dtype=float)
-
+        if h == 0.0:
+            t_rest = 2.0 * v / (9.81 * (1.0 - 0.8))
+            if t_left >= t_rest:
+                return np.array([0.0, 0.0], dtype=float)
+        
         #  h(t) = h(0) + v(0) t - 0.5 * 9.81 * t^2
         #  v(t) = v(0) - g t
         #  solve for t when h(t) = 0
-        # args = [0.5 * 9.81, -v, -h]
-        # np.roots(args)
-        t = symbols('t')
-        eq = Eq(h + v * t - 0.5 * 9.81 * t**2, 0)
-        t_hit = solve(eq, t)
+        args = [0.5 * 9.81, -v, -h]
+        t_hit = np.roots(args)
+        # t = symbols('t')
+        # eq = Eq(h + v * t - 0.5 * 9.81 * t**2, 0)
+        # t_hit = solve(eq, t)
 
         # keep the smallest positive real root
-        pos = [float(r) for r in t_hit if getattr(r, "is_real", True) and float(r) > 1e-12]
+        pos = [float(r.real) for r in t_hit if np.isreal(r) and r.real > 0.0]
         t_hit = min(pos) if pos else None
 
 
