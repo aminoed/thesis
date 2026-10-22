@@ -13,11 +13,7 @@ ALPHA = 0.05
 BETA = 1e-8
 M_MAX = 3
 SPLIT_STRATEGY = "residual_range"
-# SPLIT_STRATEGY = "maximum_residual"
-
-
 EPS_STAR = 0.01 
-N_TRAIN = 200000 
 
 
 class BuildStates:
@@ -493,7 +489,7 @@ def serialize_piece(piece, X, y):
 for OUTPUT in range(12):
     data_file = f"quadrotor_y{OUTPUT}_new.csv"
 
-    data = pd.read_csv(data_file).iloc[:N_TRAIN]
+    data = pd.read_csv(data_file)
     input_columns = [f"x{i}" for i in range(12)]
     X = data[input_columns].to_numpy(dtype=float)
     y = data[f"y{OUTPUT}"].to_numpy(dtype=float)
