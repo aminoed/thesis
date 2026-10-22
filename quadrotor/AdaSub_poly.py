@@ -491,7 +491,7 @@ def serialize_piece(piece, X, y):
     return saved_piece
 
 for OUTPUT in range(12):
-    data_file = f"quadrotor_y{OUTPUT}.csv"
+    data_file = f"quadrotor_y{OUTPUT}_new.csv"
 
     data = pd.read_csv(data_file).iloc[:N_TRAIN]
     input_columns = [f"x{i}" for i in range(12)]
@@ -540,8 +540,8 @@ for OUTPUT in range(12):
     os.makedirs("PAC_PIECE", exist_ok=True)
     os.makedirs("PAC_PERF", exist_ok=True)
 
-    model_file = f"PAC_PIECE/pieces_{tag}.json"
-    performance_file = f"PAC_PERF/pac_build_{tag}.json"
+    model_file = f"PAC_PIECE/pieces_{tag}_new.json"
+    performance_file = f"PAC_PERF/pac_build_{tag}_new.json"
 
     with open(model_file, "w", encoding="utf-8") as model_output:
         json.dump(saved_pieces, model_output, ensure_ascii=False, indent=2)

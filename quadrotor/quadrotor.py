@@ -1,5 +1,5 @@
 import json
-
+import time
 import numpy as np
 import pandas as pd
 from scipy.integrate import solve_ivp
@@ -30,10 +30,11 @@ x_max = np.array([
     3.0, 3.0, 1.6, 2.0, 2.0, 1.0,
     0.2, 0.2, 0.4, 0.5, 0.5, 0.5,
 ])
-
+x_min[:2] = [-5.0, -5.0]
+x_max[:2] = [5.0, 5.0]
 MODEL_PATHS = [
     "PAC_PIECE/"
-    f"pieces_a0.05_b1e-08_k50000_e0.01_m3_sresidual_range_NPAC1297_y{j}.json"
+    f"pieces_a0.05_b1e-08_k50000_e0.01_m3_sresidual_range_NPAC1297_y{j}_new.json"
     for j in range(12)
 ]
 # MODEL_PATHS = [
@@ -163,7 +164,7 @@ def predict(xs, pieces):
 # input_columns = [f"x{i}" for i in range(12)]
 # for j in range(12):
 #     data = np.hstack((X, Y[:, j].reshape(-1, 1)))
-#     filename = f"quadrotor_y{j}.csv"
+#     filename = f"quadrotor_y{j}_new.csv"
 #     pd.DataFrame(data, columns=input_columns + [f"y{j}"]).to_csv(
 #         filename, index=False
 #     )
@@ -171,6 +172,8 @@ models = [load_model(path) for path in MODEL_PATHS]
 
 initial_state = np.zeros(12)
 initial_state[:6] = rng.uniform(-0.4, 0.4, size=6)
+initial_state[6] = 0.05  
+initial_state[7] = -0.04
 x0 = np.asarray(initial_state, dtype=float).copy()
 x1 = x0.copy()
 pac_traj = [x0.copy()]
@@ -184,6 +187,35 @@ for i in range(200):
 ts = dt * np.arange(200 + 1)
 pac_traj = np.asarray(pac_traj)
 true_traj = np.asarray(true_traj)
+    # plt.plot(ts, pac_traj[:, 2], "o", color="black", markersize=3, label="PAC")
+    # plt.plot(ts, true_traj[:, 2], "-", color="red", label="True")
+    # plt.axhline(TARGET_HEIGHT, color="gray", linestyle="--", label="Target: 1 m")
+    # plt.xlabel("Time t (s)")
+    # plt.ylabel("Height x3 (m)")
+    # plt.grid()
+    # plt.legend()
+    # plt.savefig("height.png", dpi=150)
+    # plt.show()
+state_names = ["x", "y", "z", "u", "v", "w", "roll", "pitch", "yaw", "p", "q", "r"]
+state_units = ["m"] * 3 + ["m/s"] * 3 + ["rad"] * 3 + ["rad/s"] * 3
+error = pac_traj - true_traj
+abs_error = np.abs(error)
+summary = pd.DataFrame({
+    "state": state_names,
+    "unit": state_units,
+    "rmse": np.sqrt(np.mean(error[1:] ** 2, axis=0)),
+    "mae": np.mean(abs_error[1:], axis=0),
+    "max_abs_error": np.max(abs_error[1:], axis=0),
+    "final_abs_error": abs_error[-1],
+})
+summary.to_csv("quadrotor_error_summary.csv", index=False)
+print(summary.to_string(index=False, float_format=lambda v: f"{v:.6g}"))
+trajectory = {"t": ts}
+for j, name in enumerate(state_names):
+    trajectory[f"ode_{name}"] = true_traj[:, j]
+    trajectory[f"pac_{name}"] = pac_traj[:, j]
+    trajectory[f"abs_error_{name}"] = abs_error[:, j]
+pd.DataFrame(trajectory).to_csv("quadrotor_trajectory.csv", index=False)
     # plt.plot(ts, pac_traj[:, 2], "o", color="black", markersize=3, label="PAC")
     # plt.plot(ts, true_traj[:, 2], "-", color="red", label="True")
     # plt.axhline(TARGET_HEIGHT, color="gray", linestyle="--", label="Target: 1 m")
@@ -222,9 +254,9 @@ with plt.rc_context(plot_style):
 
     ax.axhline(
         TARGET_HEIGHT,
-        color="#949DA8",
+        color="red",
         linestyle=(0, (5, 4)),
-        linewidth=1.2,
+        linewidth=1.8,
         zorder=1,
     )
     ax.plot(
@@ -239,7 +271,7 @@ with plt.rc_context(plot_style):
         color="#D97732",
         linestyle="none",
         marker="o",
-        markevery=1,  
+        markevery=1,
         markersize=1.5,
         markerfacecolor="white",
         markeredgewidth=1.2,
@@ -253,7 +285,7 @@ with plt.rc_context(plot_style):
         xytext=(0, 10),
         textcoords="offset points",
         ha="right", va="bottom",
-        fontsize=13, color="#69737F",
+        fontsize=13, color="#202020",
     )
 
     ax.set_xlabel(r"$t$ (s)")
@@ -282,4 +314,82 @@ with plt.rc_context(plot_style):
 
     fig.savefig("height.png", dpi=300)
     fig.savefig("height.pdf")
-    plt.show()
+
+    # Extra state plots use the same style as the height figure above.
+    # w is body-frame vertical velocity; at zero attitude, dz/dt = -w.
+    for j, ylabel, filename in [
+        (5, r"$w$ (m/s)", "vertical_velocity"),
+        (6, r"$\phi$ (rad)", "roll"),
+        (7, r"$\theta$ (rad)", "pitch"),
+    ]:
+        fig, ax = plt.subplots(figsize=(6.0, 4.5), layout="constrained")
+        ax.plot(ts, true_traj[:, j], color="#326A9F", linewidth=3.0,
+                label="ODE Solution", zorder=2)
+        ax.plot(ts, pac_traj[:, j], color="#D97732", linestyle="none",
+                marker="o", markevery=1, markersize=1.5,
+                markerfacecolor="white", markeredgewidth=1.2,
+                label="PAC Estimation", zorder=3)
+        ax.set_xlabel(r"$t$ (s)")
+        ax.set_ylabel(ylabel)
+        ax.set_xlim(ts[0] - 0.08, ts[-1] + 0.08)
+        ax.margins(y=0.12)
+        ax.xaxis.set_major_locator(MultipleLocator(1.0))
+        ax.xaxis.set_minor_locator(AutoMinorLocator(2))
+        ax.yaxis.set_minor_locator(AutoMinorLocator(2))
+        ax.tick_params(which="major", length=4, width=0.8)
+        ax.tick_params(which="minor", length=2, width=0.6)
+        ax.grid(which="major", color="#DCE1E7", linewidth=0.6,
+                linestyle="--", alpha=0.8)
+        ax.legend(loc="lower center", bbox_to_anchor=(0.5, 1.01), ncol=2,
+                  handlelength=1.3, handletextpad=0.5, columnspacing=1.0,
+                  borderaxespad=0.0)
+        fig.savefig(f"{filename}.png", dpi=300)
+        fig.savefig(f"{filename}.pdf")
+
+    # Every time sample is included in the rolling-error curves.
+    fig, axes = plt.subplots(2, 1, figsize=(6.0, 6.5), sharex=True,
+                             layout="constrained")
+    for ax, j, ylabel in [
+        (axes[0], 2, r"$|e_z|$ (m)"),
+        (axes[1], 5, r"$|e_w|$ (m/s)"),
+    ]:
+        ax.plot(ts, abs_error[:, j], color="#D97732", linewidth=2.0)
+        ax.set_ylabel(ylabel)
+        ax.set_xlim(ts[0], ts[-1])
+        ax.ticklabel_format(axis="y", style="sci", scilimits=(-2, 2),
+                            useMathText=True)
+        ax.xaxis.set_major_locator(MultipleLocator(1.0))
+        ax.xaxis.set_minor_locator(AutoMinorLocator(2))
+        ax.yaxis.set_minor_locator(AutoMinorLocator(2))
+        ax.tick_params(which="major", length=4, width=0.8)
+        ax.tick_params(which="minor", length=2, width=0.6)
+        ax.grid(which="major", color="#DCE1E7", linewidth=0.6,
+                linestyle="--", alpha=0.8)
+    axes[-1].set_xlabel(r"$t$ (s)")
+    fig.savefig("rolling_error.png", dpi=300)
+    fig.savefig("rolling_error.pdf")
+
+# Compare one full 12-output PAC step with an ODE step on the SAME states.
+# Warm-up and JSON loading are excluded; no changes to the rollout above.
+[predict(true_traj[0], pieces)[0] for pieces in models]
+Phi(true_traj[0])
+pac_ms, ode_ms = [], []
+for state in true_traj[:-1]:
+    start = time.perf_counter()
+    [predict(state, pieces)[0] for pieces in models]
+    pac_ms.append(1000.0 * (time.perf_counter() - start))
+    start = time.perf_counter()
+    Phi(state)
+    ode_ms.append(1000.0 * (time.perf_counter() - start))
+timing_summary = pd.DataFrame([
+    {"method": name, "n_evaluations": len(values),
+     "mean_ms": np.mean(values), "median_ms": np.median(values),
+     "p95_ms": np.percentile(values, 95)}
+    for name, values in [("PAC (12 outputs)", pac_ms), ("ODE", ode_ms)]
+])
+timing_summary.to_csv("quadrotor_timing_summary.csv", index=False)
+pd.DataFrame({"pac_ms": pac_ms, "ode_ms": ode_ms}).to_csv(
+    "quadrotor_step_times.csv", index=False)
+print(timing_summary.to_string(index=False, float_format=lambda v: f"{v:.6g}"))
+
+plt.show()
