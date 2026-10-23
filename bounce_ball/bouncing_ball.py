@@ -232,17 +232,17 @@ def plot_bounce_ball():
                 linestyle="--",
                 alpha=0.8,
             )
-            ax.legend(
-                loc="lower center",
-                bbox_to_anchor=(0.5, 1.01),
-                ncol=2,
-                handlelength=1.3,
-                handletextpad=0.5,
-                columnspacing=1.0,
-                borderaxespad=0.0,
-            )
+            if j == 0:
+                ax.legend(
+                    loc="lower center",
+                    bbox_to_anchor=(0.5, 1.01),
+                    ncol=2,
+                    handlelength=1.3,
+                    handletextpad=0.5,
+                    columnspacing=1.0,
+                    borderaxespad=0.0,
+                )
             fig.savefig(f"bounce_ball_s{j + 1}.pdf", bbox_inches="tight")
-            fig.savefig(f"bounce_ball_s{j + 1}.png", dpi=180, bbox_inches="tight")
             plt.close(fig)
 
 

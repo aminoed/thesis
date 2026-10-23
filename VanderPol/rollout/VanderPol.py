@@ -187,16 +187,16 @@ def plot_vanderpol():
                 linestyle="--",
                 alpha=0.8,
             )
-            if j == 1:
-                ax.legend(
-                    loc="lower center",
-                    bbox_to_anchor=(0.5, 1.01),
-                    ncol=2,
-                    handlelength=1.3,
-                    handletextpad=0.5,
-                    columnspacing=1.0,
-                    borderaxespad=0.0,
-                )
+            # if j == 1:
+            #     ax.legend(
+            #         loc="lower center",
+            #         bbox_to_anchor=(0.5, 1.01),
+            #         ncol=2,
+            #         handlelength=1.3,
+            #         handletextpad=0.5,
+            #         columnspacing=1.0,
+            #         borderaxespad=0.0,
+            #     )
             fig.savefig(f"vanderpol_s{j + 1}.pdf", bbox_inches="tight")
             plt.close(fig)
 

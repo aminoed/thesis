@@ -139,7 +139,8 @@ def plot_vanderpol():
 
             ax.set_xlabel(r"$t$ (s)")
             ax.set_ylabel(rf"$s_{{{j + 1}}}$")
-            ax.set_xlim(0, ts[-1])
+            # Model time bound is ~2.99996; keep display horizon at 3 so tick 3.0 shows.
+            ax.set_xlim(0, 3.0)
             ax.margins(y=0.12)
             ax.xaxis.set_major_locator(MultipleLocator(0.5))
             ax.yaxis.set_major_locator(MultipleLocator(1.0))
@@ -154,7 +155,7 @@ def plot_vanderpol():
                 linestyle="--",
                 alpha=0.8,
             )
-            if j == 1:
+            if j == 0:
                 ax.legend(
                     loc="lower center",
                     bbox_to_anchor=(0.5, 1.01),
@@ -223,7 +224,7 @@ def plot_vanderpol():
             alpha=0.8,
         )
         
-        fig.savefig("vanderpol_phase.pdf", bbox_inches="tight")
+        fig.savefig("vanderpol.pdf", bbox_inches="tight")
         plt.close(fig)
 
 

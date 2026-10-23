@@ -266,15 +266,14 @@ with plt.rc_context(plot_style):
             ax.grid(
                 which="major", color="#DCE1E7", linewidth=0.6, linestyle="--", alpha=0.8
             )
-            ax.legend(
-                loc="lower center",
-                bbox_to_anchor=(0.5, 1.01),
-                ncol=2,
-                handlelength=1.3,
-                handletextpad=0.5,
-                columnspacing=1.0,
-                borderaxespad=0.0,
-            )
+            # ax.legend(
+            #     loc="lower center",
+            #     bbox_to_anchor=(0.5, 1.01),
+            #     ncol=2,
+            #     handlelength=1.3,
+            #     handletextpad=0.5,
+            #     columnspacing=1.0,
+            #     borderaxespad=0.0,
+            # )
             fig.savefig(f"bounce_ball_{filename}.pdf", bbox_inches="tight")
-            fig.savefig(f"bounce_ball_{filename}.png", dpi=180, bbox_inches="tight")
             plt.close(fig)
