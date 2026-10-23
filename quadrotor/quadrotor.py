@@ -35,7 +35,7 @@ x_max[:2] = [5.0, 5.0]
 MODEL_PATHS = [
     "PAC_PIECE/"
     f"pieces_a0.05_b1e-08_k50000"
-    f"_e{0.0001 if j in (8, 11, 0, 3) else 0.01}"
+    f"_e{0.0001 if j in (8, 11) else 0.001 if j == 0 else 0.01}"
     f"_m3_sresidual_range_NPAC1297_y{j}_new.json"
     for j in range(12)
 ]
@@ -252,7 +252,7 @@ plot_style = {
 }
 
 state_ylabels = [
-    rf"$x_{{{j+1}}}$ ({unit})" for j, unit in enumerate(state_units)
+    rf"$s_{{{j+1}}}$ ({unit})" for j, unit in enumerate(state_units)
 ]
 state_filenames = [f"x{j+1}" for j in range(12)]
 
@@ -311,7 +311,7 @@ with plt.rc_context(plot_style):
             which="major", color="#DCE1E7", linewidth=0.6,
             linestyle="--", alpha=0.8,
         )
-        if j%3 == 1:
+        if j == 0:
             ax.legend(
                 loc="lower center",
                 bbox_to_anchor=(0.5, 1.01),

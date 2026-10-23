@@ -498,8 +498,10 @@ for OUTPUT in range(12):
     N_PAC = n_pac_for_degree(ALPHA, BETA, d, 1)
     init_bounds = [(X[:, i].min(), X[:, i].max()) for i in range(d)]
 
-    if OUTPUT == 11 or OUTPUT == 8 or OUTPUT == 0 or OUTPUT == 3:
+    if OUTPUT == 11 or OUTPUT == 8:
         EPS_STAR = 0.0001
+    elif OUTPUT == 0:
+        EPS_STAR = 0.001
     else:
         EPS_STAR = 0.01
 

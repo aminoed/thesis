@@ -6,14 +6,14 @@ import json
 from matplotlib.ticker import AutoMinorLocator, MultipleLocator
 
 rng = np.random.default_rng(0)
-x_min = np.array([-1.0, -20.0])
-x_max = np.array([10.0, 20.0])
+x_min = np.array([-0.05, -20.0])
+x_max = np.array([9.1, 20.0])
 dt = 0.01
 MODEL_PATHS = [
     "PAC_PIECE/"
-    f"pieces_a0.05_b1e-08_k200000"
-    f"_e{0.02 if j == 0 else 0.03}"
-    f"_m3_sresidual_range_NPAC897_Y{j}.json"
+    f"pieces_a0.1_b0.013_k200000"
+    f"_e{0.001 if j == 0 else 0.03}"
+    f"_m3_sresidual_range_NPAC167_Y{j}.json"
     for j in range(2)
 ]
 
@@ -137,8 +137,8 @@ error = pac_traj - true_traj
 abs_error = np.abs(error)
 summary = pd.DataFrame(
     {
-        "state": state_names,
-        "unit": state_units,
+        "state": np.tile(state_names, len(ts)),
+        "unit": np.tile(state_units, len(ts)),
         "error": error.flatten(),
         "abs_error": abs_error.flatten(),
     }
@@ -180,49 +180,67 @@ state_ylabels = [rf"$x_{{{j+1}}}$ ({unit})" for j, unit in enumerate(state_units
 state_filenames = [f"x{j+1}" for j in range(2)]
 
 with plt.rc_context(plot_style):
-    for j, ylabel, filename in zip(range(2), state_ylabels, state_filenames):
-        fig, ax = plt.subplots(figsize=(6.0, 4.5), layout="constrained")
+        for j, ylabel, filename in zip(range(2), state_ylabels, state_filenames):
+            fig, ax = plt.subplots(figsize=(6.0, 4.5), layout="constrained")
 
-        ax.plot(
-            ts,
-            true_traj[:, j],
-            color="#326A9F",
-            linewidth=3.0,
-            label="ODE Solution",
-            zorder=2,
-        )
-        ax.plot(
-            ts,
-            pac_traj[:, j],
-            color="#D97732",
-            linestyle="none",
-            marker="o",
-            markersize=1.5,
-            markerfacecolor="white",
-            markeredgewidth=1.2,
-            label="PAC Estimation",
-            zorder=3,
-        )
-        ax.set_xlabel(r"$t$ (s)")
-        ax.set_ylabel(ylabel)
-        ax.set_xlim(0, ts[-1])
-        ax.margins(y=0.12)
-        ax.xaxis.set_major_locator(MultipleLocator(1.0))
-        ax.xaxis.set_minor_locator(AutoMinorLocator(2))
-        ax.yaxis.set_minor_locator(AutoMinorLocator(2))
-        ax.tick_params(which="major", length=4, width=0.8)
-        ax.tick_params(which="minor", length=2, width=0.6)
-        ax.grid(
-            which="major", color="#DCE1E7", linewidth=0.6, linestyle="--", alpha=0.8
-        )
-        ax.legend(
-            loc="lower center",
-            bbox_to_anchor=(0.5, 1.01),
-            ncol=2,
-            handlelength=1.3,
-            handletextpad=0.5,
-            columnspacing=1.0,
-            borderaxespad=0.0,
-        )
-        fig.savefig(f"bounce_ball_{filename}.pdf", bbox_inches="tight")
-        plt.close(fig)
+            ode_ts = ts
+            ode_values = true_traj[:, j]
+            if j == 1:
+                # Draw impact connectors as dashed segments instead of solid lines.
+                impacts = np.flatnonzero(np.diff(ode_values) > 1) + 1
+                ode_ts = np.insert(ts, impacts, np.nan)
+                ode_values = np.insert(ode_values, impacts, np.nan)
+                for impact in impacts:
+                    ax.plot(
+                        ts[impact - 1:impact + 1],
+                        true_traj[impact - 1:impact + 1, j],
+                        color="#326A9F",
+                        linestyle="--",
+                        linewidth=2.0,
+                        zorder=2,
+                    )
+
+            ax.plot(
+                ode_ts,
+                ode_values,
+                color="#326A9F",
+                linewidth=3.0,
+                label="ODE Solution",
+                zorder=2,
+            )
+            ax.plot(
+                ts,
+                pac_traj[:, j],
+                color="#D97732",
+                linestyle="none",
+                marker="o",
+                markersize=1.5,
+                markerfacecolor="white",
+                markeredgewidth=1.2,
+                label="PAC Estimation",
+                zorder=3,
+            )
+            ax.set_xlabel(r"$t$ (s)")
+            ax.set_ylabel(ylabel)
+            ax.set_xlim(0, ts[-1])
+            ax.margins(y=0.12)
+            ax.xaxis.set_major_locator(MultipleLocator(1.0))
+            ax.xaxis.set_minor_locator(AutoMinorLocator(2))
+            ax.yaxis.set_minor_locator(AutoMinorLocator(2))
+            ax.tick_params(which="major", length=4, width=0.8)
+            ax.tick_params(which="minor", length=2, width=0.6)
+            ax.grid(
+                which="major", color="#DCE1E7", linewidth=0.6, linestyle="--", alpha=0.8
+            )
+            ax.legend(
+                loc="lower center",
+                bbox_to_anchor=(0.5, 1.01),
+                ncol=2,
+                handlelength=1.3,
+                handletextpad=0.5,
+                columnspacing=1.0,
+                borderaxespad=0.0,
+            )
+            fig.savefig(f"bounce_ball_{filename}.pdf", bbox_inches="tight")
+            fig.savefig(f"bounce_ball_{filename}.png", dpi=180, bbox_inches="tight")
+            plt.close(fig)

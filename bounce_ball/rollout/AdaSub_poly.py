@@ -10,11 +10,11 @@ import time
 
 
 ALPHA = 0.1
-BETA = 1e-8
+BETA = 0.013
 M_MAX = 3
 SPLIT_STRATEGY = "residual_range" 
 OUTPUT = 1
-EPS_STAR = 0.02 if OUTPUT == 0 else 0.03
+EPS_STAR = 0.001 if OUTPUT == 0 else 0.03
 
 
 class BuildStates:
@@ -454,16 +454,11 @@ def serialize_piece(piece, X, y):
 
 
 data_file = f"bounce_ball_X_{200000}.csv" if OUTPUT == 0 else f"bounce_ball_Y_{200000}.csv"
-X = pd.read_csv(data_file)[["x0", "x1"]].to_numpy(dtype=float)
-y = pd.read_csv(data_file)[f"y{OUTPUT}"].to_numpy(dtype=float)
+X = pd.read_csv(data_file, float_precision="round_trip")[["x0", "x1"]].to_numpy(dtype=float)
+y = pd.read_csv(data_file, float_precision="round_trip")[f"y{OUTPUT}"].to_numpy(dtype=float)
 sample_size, d = X.shape
 N_PAC = n_pac_for_degree(ALPHA, BETA, d, 1)
 init_bounds = [(X[:, i].min(), X[:, i].max()) for i in range(d)]
-
-if OUTPUT == 0:
-    EPS_STAR = 0.02
-else:
-    EPS_STAR = 0.03
 
 DATA.__init__()
 DATA.start_timing()
