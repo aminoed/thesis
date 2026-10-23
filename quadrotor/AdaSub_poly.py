@@ -1,13 +1,13 @@
 import json
 import math
 import os
+import time
 from collections import deque
 from itertools import combinations_with_replacement
-import numpy as np
-from scipy import optimize
-import pandas as pd
-import time
 
+import numpy as np
+import pandas as pd
+from scipy import optimize
 
 ALPHA = 0.05
 BETA = 1e-8
