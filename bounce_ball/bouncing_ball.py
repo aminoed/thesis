@@ -148,6 +148,7 @@ def plot_bounce_ball():
     TRUE_COLOR = "#326A9F"
     PAC_COLOR = "#D97732"
     FIG_SIZE = (6.0, 4.5)
+    state_units = ["m", "m/s"]
 
     plot_style = {
         "font.size": 24,
@@ -165,96 +166,84 @@ def plot_bounce_ball():
         "ytick.direction": "out",
         "xtick.labelsize": 24,
         "ytick.labelsize": 24,
-        "legend.fontsize": 22,
+        "legend.fontsize": 17,
         "legend.frameon": False,
         "figure.facecolor": "white",
         "axes.facecolor": "white",
         "savefig.facecolor": "white",
-        "savefig.bbox": None,
         "pdf.fonttype": 42,
     }
 
-    def style_axes(ax):
-        ax.grid(
-            which="major",
-            color="#DCE1E7",
-            linewidth=0.6,
-            linestyle="--",
-            alpha=0.8,
-        )
-        ax.xaxis.set_minor_locator(AutoMinorLocator(2))
-        ax.yaxis.set_minor_locator(AutoMinorLocator(2))
-        ax.tick_params(which="major", length=4, width=0.8)
-        ax.tick_params(which="minor", length=2, width=0.6)
-
-    def plot_comparison(ax, true_x, true_y, pac_x, pac_y):
-        ax.plot(
-            true_x,
-            true_y,
-            color=TRUE_COLOR,
-            linewidth=3.0,
-            label="ODE Solution",
-            zorder=2,
-        )
-        ax.plot(
-            pac_x,
-            pac_y,
-            color=PAC_COLOR,
-            linestyle="none",
-            marker="o",
-            markersize=4.5,
-            markerfacecolor="white",
-            markeredgewidth=1.2,
-            label="PAC Estimation",
-            zorder=3,
-        )
-
-    
-    s1_lim = (-0.5, 11.0)
-    s2_lim = (-20.0, 45.0)
-    t_lim = (ts[0] - 0.1, ts[-1] + 0.1)
-    y_lims = (s1_lim, s2_lim)
-    y_ticks = (2.0, 10.0)
-
     with plt.rc_context(plot_style):
-        # State components over time
         for j in range(2):
-            fig, ax = plt.subplots(
-                figsize=FIG_SIZE,
-                layout="constrained",
-            )
+            fig, ax = plt.subplots(figsize=FIG_SIZE, layout="constrained")
 
-            plot_comparison(
-                ax,
-                ts, true_traj[:, j],
-                ts, pac_traj[:, j],
-            )
-
-            ax.set_xlabel(r"$t$")
-            ax.set_ylabel(rf"$s_{j + 1}$")
-            ax.set_xlim(*t_lim)
-            ax.set_ylim(*y_lims[j])
-
-            ax.xaxis.set_major_locator(MultipleLocator(1.0))
-            ax.yaxis.set_major_locator(MultipleLocator(y_ticks[j]))
-
-            style_axes(ax)
+            ode_ts = ts
+            ode_values = true_traj[:, j]
             if j == 1:
-                ax.legend(
-                    loc="lower center",
-                    bbox_to_anchor=(0.5, 1.0),
-                    ncol=2,
-                    handlelength=1,
-                    handletextpad=0.5,
-                    columnspacing=1.0,
-                    labelspacing=0.3,
-                )
-            fig.savefig(
-                f"bounce_ball_s{j + 1}.pdf",
-                bbox_inches=None,
+                # Draw impact connectors as dashed segments instead of solid lines.
+                impacts = np.flatnonzero(np.diff(ode_values) > 1) + 1
+                ode_ts = np.insert(ts, impacts, np.nan)
+                ode_values = np.insert(ode_values, impacts, np.nan)
+                for impact in impacts:
+                    ax.plot(
+                        ts[impact - 1 : impact + 1],
+                        true_traj[impact - 1 : impact + 1, j],
+                        color=TRUE_COLOR,
+                        linestyle="--",
+                        linewidth=2.0,
+                        zorder=2,
+                    )
+
+            ax.plot(
+                ode_ts,
+                ode_values,
+                color=TRUE_COLOR,
+                linewidth=3.0,
+                label="ODE Solution",
+                zorder=2,
+            )
+            ax.plot(
+                ts,
+                pac_traj[:, j],
+                color=PAC_COLOR,
+                linestyle="none",
+                marker="o",
+                markersize=1.5,
+                markerfacecolor="white",
+                markeredgewidth=1.2,
+                label="PAC Estimation",
+                zorder=3,
             )
 
-    plt.show()
+            ax.set_xlabel(r"$t$ (s)")
+            ax.set_ylabel(rf"$s_{{{j + 1}}}$ ({state_units[j]})")
+            ax.set_xlim(0, ts[-1])
+            ax.margins(y=0.12)
+            ax.xaxis.set_major_locator(MultipleLocator(1.0))
+            ax.xaxis.set_minor_locator(AutoMinorLocator(2))
+            ax.yaxis.set_minor_locator(AutoMinorLocator(2))
+            ax.tick_params(which="major", length=4, width=0.8)
+            ax.tick_params(which="minor", length=2, width=0.6)
+            ax.grid(
+                which="major",
+                color="#DCE1E7",
+                linewidth=0.6,
+                linestyle="--",
+                alpha=0.8,
+            )
+            ax.legend(
+                loc="lower center",
+                bbox_to_anchor=(0.5, 1.01),
+                ncol=2,
+                handlelength=1.3,
+                handletextpad=0.5,
+                columnspacing=1.0,
+                borderaxespad=0.0,
+            )
+            fig.savefig(f"bounce_ball_s{j + 1}.pdf", bbox_inches="tight")
+            fig.savefig(f"bounce_ball_s{j + 1}.png", dpi=180, bbox_inches="tight")
+            plt.close(fig)
 
 
 dt = 0.01
@@ -322,7 +311,7 @@ for name, err_list, eps_list in [
         })
 
 summary = pd.DataFrame(rows)
-print(summary.to_string(index=False, float_format=lambda x: f"{x:.4f}"))
+print(summary.to_string(index=False, float_format=lambda x: f"{x:.2f}"))
 summary.to_csv("bounce_ball_summary.csv", index=False)
 plot_bounce_ball()
 

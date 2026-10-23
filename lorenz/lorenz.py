@@ -59,23 +59,6 @@ def select_piece(xs, pieces):
 
     if not models:
         raise ValueError(f"not able to find a matched model with the given factors: {xs}")
-    # if not models:
-    #     print("\n=== DEBUG: no matched piece ===")
-    #     print("xs:", xs)
-
-    #     for p_idx, p in enumerate(pieces[:5]):
-    #         print(f"\n-- checking piece {p_idx} --")
-    #         for i in range(d):
-    #             lo, hi = p["bounds"][i]
-    #             # tol = tol_vec[i]
-    #             # if not (lo - tol <= xs[i] <= hi + tol):
-    #             if not (lo <= xs[i] <= hi):
-    #                 print(f"[FAIL] dim={i}, xs={xs[i]:.6f}, "
-    #                       f"range=[{lo:.6f},{hi:.6f}]")
-    #                       # f"range=[{lo:.6f},{hi:.6f}], tol={tol:.6f}")
-    #                 break
-
-        # raise ValueError(f"not able to find a matched model with the given factors: {xs}")
     return min(models, key=lambda p: p["epsilon"])
 
 
@@ -102,6 +85,7 @@ def plot_lorenz():
     TRUE_COLOR = "#326A9F"
     PAC_COLOR = "#D97732"
     FIG_SIZE = (6.0, 4.5)
+    y_ticks = (5.0, 10.0, 10.0)
 
     plot_style = {
         "font.size": 24,
@@ -119,110 +103,81 @@ def plot_lorenz():
         "ytick.direction": "out",
         "xtick.labelsize": 24,
         "ytick.labelsize": 24,
-        "legend.fontsize": 22,
+        "legend.fontsize": 17,
         "legend.frameon": False,
         "figure.facecolor": "white",
         "axes.facecolor": "white",
         "savefig.facecolor": "white",
-        "savefig.bbox": None,
         "pdf.fonttype": 42,
     }
 
-    def style_axes(ax):
-        ax.grid(
-            which="major",
-            color="#DCE1E7",
-            linewidth=0.6,
-            linestyle="--",
-            alpha=0.8,
-        )
-        ax.xaxis.set_minor_locator(AutoMinorLocator(2))
-        ax.yaxis.set_minor_locator(AutoMinorLocator(2))
-        ax.tick_params(which="major", length=4, width=0.8)
-        ax.tick_params(which="minor", length=2, width=0.6)
-
-    def plot_comparison(ax, true_x, true_y, pac_x, pac_y):
-        ax.plot(
-            true_x,
-            true_y,
-            color=TRUE_COLOR,
-            linewidth=3.0,
-            label="ODE Solution",
-            zorder=2,
-        )
-        ax.plot(
-            pac_x,
-            pac_y,
-            color=PAC_COLOR,
-            linestyle="none",
-            marker="o",
-            markersize=4.5,
-            markerfacecolor="white",
-            markeredgewidth=1.2,
-            label="PAC Estimation",
-            zorder=3,
-        )
-
     with plt.rc_context(plot_style):
-        # State components over time
         for j in range(3):
-            fig, ax = plt.subplots(
-                figsize=FIG_SIZE,
-                layout="constrained",
+            fig, ax = plt.subplots(figsize=FIG_SIZE, layout="constrained")
+
+            ax.plot(
+                ts,
+                true_traj[:, j],
+                color=TRUE_COLOR,
+                linewidth=3.0,
+                label="ODE Solution",
+                zorder=2,
+            )
+            ax.plot(
+                ts,
+                pac_traj[:, j],
+                color=PAC_COLOR,
+                linestyle="none",
+                marker="o",
+                markersize=1.5,
+                markerfacecolor="white",
+                markeredgewidth=1.2,
+                label="PAC Estimation",
+                zorder=3,
             )
 
-            plot_comparison(
-                ax,
-                ts, true_traj[:, j],
-                ts, pac_traj[:, j],
-            )
-
-            ax.set_xlabel(r"$t$")
-            ax.set_ylabel(rf"$s_{j + 1}$")
-            ax.set_xlim(ts[0] - 0.04, ts[-1] + 0.04)
+            ax.set_xlabel(r"$t$ (s)")
+            ax.set_ylabel(rf"$s_{{{j + 1}}}$")
+            ax.set_xlim(0, ts[-1])
             ax.margins(y=0.12)
-
             ax.xaxis.set_major_locator(MultipleLocator(0.1))
-            if j==0:
-                y_step = 2.0
-            elif j==1:
-                y_step = 5.0
-            elif j==2:
-                y_step = 1.0
-
-            ax.yaxis.set_major_locator(MultipleLocator(y_step))
-            ax.yaxis.set_major_locator(MultipleLocator(y_step))
-
-            style_axes(ax)
-            if j==1:
+            ax.yaxis.set_major_locator(MultipleLocator(y_ticks[j]))
+            ax.xaxis.set_minor_locator(AutoMinorLocator(2))
+            ax.yaxis.set_minor_locator(AutoMinorLocator(2))
+            ax.tick_params(which="major", length=4, width=0.8)
+            ax.tick_params(which="minor", length=2, width=0.6)
+            ax.grid(
+                which="major",
+                color="#DCE1E7",
+                linewidth=0.6,
+                linestyle="--",
+                alpha=0.8,
+            )
+            if j == 1:
                 ax.legend(
                     loc="lower center",
-                    bbox_to_anchor=(0.5, 1.0),
+                    bbox_to_anchor=(0.5, 1.01),
                     ncol=2,
-                    handlelength=1,
+                    handlelength=1.3,
                     handletextpad=0.5,
                     columnspacing=1.0,
-                    labelspacing=0.3,
+                    borderaxespad=0.0,
                 )
-            fig.savefig(
-                f"lorenz_s{j + 1}.pdf",
-                bbox_inches=None,
-            )
-
-    plt.show()
+            fig.savefig(f"lorenz_s{j + 1}.pdf", bbox_inches="tight")
+            fig.savefig(f"lorenz_s{j + 1}.png", dpi=180, bbox_inches="tight")
+            plt.close(fig)
 
 
 global x_min, x_max
-x_min = np.array([-20.0, -20.0, 0.0, 0.0])
-x_max = np.array([20.0, 20.0, 45.0, 0.5])
-
-x_init = [15.0, 5.0, 25.0]
+x_min = np.array([-19.0, -24.0, 5.0, 0.0])
+x_max = np.array([19.0, 24.0, 46.0, 0.5])
+x_init = [-4.3, -6.5, 21.5]
 x0 = [*x_init, 0.0]
 dt = 0.001
 
-pieces1_path = "PAC_PIECE/pieces_a0.2_b0.01_k125000_e0.1_m3_residual_range_NPAC107_X.json"
+pieces1_path = "PAC_PIECE/pieces_a0.2_b0.01_k200000_e0.1_m3_residual_range_NPAC107_X.json"
 pieces2_path = "PAC_PIECE/pieces_a0.2_b0.01_k200000_e0.1_m3_residual_range_NPAC107_Y.json"
-pieces3_path = "PAC_PIECE/pieces_a0.2_b0.01_k100000_e0.1_m3_residual_range_NPAC107_Z.json"
+pieces3_path = "PAC_PIECE/pieces_a0.2_b0.01_k200000_e0.1_m3_residual_range_NPAC107_Z.json"
 
 pieces1 = load_model(pieces1_path)
 pieces2 = load_model(pieces2_path)  

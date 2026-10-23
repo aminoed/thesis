@@ -13,12 +13,11 @@ ALPHA = 0.2
 BETA = 0.01
 M_MAX = 3
 SPLIT_STRATEGY = "residual_range" 
-# SPLIT_STRATEGY = "maximum_residual"
 EPS_STAR = 0.1
 
-OUTPUT = 0                     
-N_POOL = 200000                 
-N_TRAIN = (125000, 200000, 100000)[OUTPUT]
+OUTPUT = 2                     
+N_POOL = 200000
+N_TRAIN = 200000
 OUTPUT_NAME = ("X", "Y", "Z")[OUTPUT]
 
 class BuildStates:
@@ -463,11 +462,6 @@ def serialize_piece(piece, X, y):
 
 data_file = f"lorenz_{OUTPUT_NAME}_{N_POOL}.csv"
 data = pd.read_csv(data_file)
-
-# if len(data) < N_TRAIN:
-#     raise ValueError(
-#         f"{data_file} has {len(data)} rows, but {N_TRAIN} rows are required"
-#     )
 
 data = data.iloc[:N_TRAIN]
 

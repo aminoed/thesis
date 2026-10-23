@@ -18,11 +18,6 @@ def ode_model(x, t):
 
 
 def sample_vanderpol(Range, n):
-    # X = rng.uniform(-Range, Range, size=(n, 2))
-    # tau = 0.05 * rng.integers(1, 101, size=n)
-    # Y = np.array([Phi(xi, ti) for xi, ti in zip(X, tau)])
-    # X = np.column_stack((X, tau))
-
     low = np.array([-Range, -Range, 0.0])
     high = np.array([Range, Range, 3.0])
     X = rng.uniform(low, high, size=(n, 3))

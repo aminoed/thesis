@@ -9,6 +9,9 @@ rng = np.random.default_rng(0)
 x_min = np.array([-0.05, -20.0])
 x_max = np.array([9.1, 20.0])
 dt = 0.01
+t_end = 5.0
+x_init = [9.0, -6.9]
+eps_star = [0.001, 0.03]  # [height, velocity]
 MODEL_PATHS = [
     "PAC_PIECE/"
     f"pieces_a0.1_b0.013_k200000"
@@ -117,34 +120,64 @@ def predict(xs, pieces):
 
 models = [load_model(path) for path in MODEL_PATHS]
 
-x_init = [9.0, -6.9]
+n_steps = int(round(t_end / dt))
 x0 = np.asarray(x_init, dtype=float).copy()
 x1 = x0.copy()
 pac_traj = [x0.copy()]
 true_traj = [x1.copy()]
-for i in range(500):
-    x0 = np.array([predict(x0, pieces)[0] for pieces in models])
+err1, eps1 = [], []
+err2, eps2 = [], []
+err3, eps3 = [], []
+
+for i in range(n_steps):
+    ys, epss = [], []
+    for pieces in models:
+        y, p = predict(x0, pieces)
+        ys.append(y)
+        epss.append(p["epsilon"])
+    x0 = np.asarray(ys, dtype=float)
     x1 = Phi_hybrid(x1)
     pac_traj.append(x0.copy())
     true_traj.append(x1.copy())
-ts = dt * np.arange(500 + 1)
+
+    t = (i + 1) * dt
+    err = np.abs(x0 - x1)
+    if t < 1:
+        err1.append(err); eps1.append(epss)
+    elif t < 3:
+        err2.append(err); eps2.append(epss)
+    else:
+        err3.append(err); eps3.append(epss)
+
+ts = dt * np.arange(n_steps + 1)
 pac_traj = np.asarray(pac_traj)
 true_traj = np.asarray(true_traj)
 
-state_names = ["x0", "x1"]
-state_units = ["m", "m/s"]
-error = pac_traj - true_traj
-abs_error = np.abs(error)
-summary = pd.DataFrame(
-    {
-        "state": np.tile(state_names, len(ts)),
-        "unit": np.tile(state_units, len(ts)),
-        "error": error.flatten(),
-        "abs_error": abs_error.flatten(),
-    }
-)
+rows = []
+for name, err_list, eps_list in [
+    ("[0,1)", err1, eps1),
+    ("[1,3)", err2, eps2),
+    ("[3,5]", err3, eps3),
+]:
+    err = np.asarray(err_list)
+    eps = np.asarray(eps_list)
+    for j, state in enumerate(["s1", "s2"]):
+        rows.append({
+            "t_interval": name,
+            "state": state,
+            "error_mean": err[:, j].mean(),
+            "error_max": err[:, j].max(),
+            "epsilon_max": eps[:, j].max(),
+            "exceed_eps_star_pct": 100.0 * np.mean(eps[:, j] > eps_star[j]),
+        })
+
+summary = pd.DataFrame(rows)
+print(summary.to_string(index=False, float_format=lambda x: f"{x:.2f}"))
 summary.to_csv("bounce_ball_summary.csv", index=False)
-print(summary.to_string(index=False, float_format=lambda v: f"{v:.6g}"))
+
+state_names = ["s1", "s2"]
+state_units = ["m", "m/s"]
+abs_error = np.abs(pac_traj - true_traj)
 trajectory = {"t": ts}
 for j, name in enumerate(state_names):
     trajectory[f"ode_{name}"] = true_traj[:, j]
@@ -176,8 +209,8 @@ plot_style = {
     "pdf.fonttype": 42,
 }
 
-state_ylabels = [rf"$x_{{{j+1}}}$ ({unit})" for j, unit in enumerate(state_units)]
-state_filenames = [f"x{j+1}" for j in range(2)]
+state_ylabels = [rf"$s_{{{j+1}}}$ ({unit})" for j, unit in enumerate(state_units)]
+state_filenames = [f"s{j+1}" for j in range(2)]
 
 with plt.rc_context(plot_style):
         for j, ylabel, filename in zip(range(2), state_ylabels, state_filenames):

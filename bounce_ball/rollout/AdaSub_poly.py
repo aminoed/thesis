@@ -12,9 +12,9 @@ import time
 ALPHA = 0.1
 BETA = 0.013
 M_MAX = 3
-SPLIT_STRATEGY = "residual_range" 
+SPLIT_STRATEGY = "residual_range"
 OUTPUT = 1
-EPS_STAR = 0.001 if OUTPUT == 0 else 0.03
+EPS_STAR = 0.02 if OUTPUT == 0 else 0.03
 
 
 class BuildStates:

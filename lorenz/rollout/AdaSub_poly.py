@@ -9,11 +9,11 @@ import pandas as pd
 import time
 
 
-ALPHA = 0.05
+ALPHA = 0.2
 BETA = 0.01
 M_MAX = 3
 SPLIT_STRATEGY = "residual_range" 
-EPS_STAR = 0.1
+
 
 OUTPUT_NAME = ("X", "Y", "Z")
 class BuildStates:
@@ -461,6 +461,7 @@ for OUTPUT in range(3):
     N_PAC = n_pac_for_degree(ALPHA, BETA, d, 1)
     init_bounds = [(X[:, i].min(), X[:, i].max()) for i in range(d)]
 
+    EPS_STAR = 0.0001 if OUTPUT == 0 else 0.001
     DATA.__init__()
     DATA.start_timing()
     pieces = adaSubDiv(X, y, init_bounds, EPS_STAR, ALPHA, BETA, M_MAX, split_strategy=SPLIT_STRATEGY)
