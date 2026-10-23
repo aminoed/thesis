@@ -1,11 +1,11 @@
-import numpy as np
-from scipy.integrate import odeint
-import matplotlib.pyplot as plt
-import pandas as pd
 import json
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 from matplotlib.ticker import AutoMinorLocator, MultipleLocator
 
-global x_min, x_max
+global x_min, x_max  # noqa: PLW0604
 rng = np.random.default_rng(0)
 x_min = np.array([-1.0, -10.0, 0.0])
 x_max = np.array([10.0, 10.0, 5.0])

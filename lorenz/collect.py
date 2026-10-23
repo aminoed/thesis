@@ -1,7 +1,6 @@
-from scipy.integrate import odeint
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from scipy.integrate import odeint
 
 rng = np.random.default_rng(91724)
 x_min = np.array([-19.0, -24.0, 5.0, 0.0])

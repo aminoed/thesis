@@ -1,13 +1,13 @@
 import json
 import math
 import os
+import time
 from collections import deque
 from itertools import combinations_with_replacement
-import numpy as np
-from scipy import optimize
-import pandas as pd
-import time
 
+import numpy as np
+import pandas as pd
+from scipy import optimize
 
 ALPHA = 0.2
 BETA = 0.01
@@ -62,9 +62,7 @@ def n_monomials(d, m):
 
 
 def n_pac_for_degree(alpha, beta, d, m):
-    return int(
-        math.ceil((2.0 / alpha) * (math.log(1.0 / beta) + n_monomials(d, m) + 1))
-    )
+    return math.ceil((2.0 / alpha) * (math.log(1.0 / beta) + n_monomials(d, m) + 1))
 
 
 def monomial_exponents(d, degree):
@@ -109,7 +107,7 @@ def compute_errors(X, y, w, degree):
 
 
 def fit_polynomial_pac(X_sub, y_sub, degree):
-    n_sub, d = X_sub.shape
+    n_sub, _d = X_sub.shape
     if n_sub == 0:
         return None, None
 
@@ -222,9 +220,8 @@ def best_split(
                 continue
 
             split_one_side = remaining_fit < 2 * k
-            if not split_one_side:
-                if left_n < k or right_n < k:
-                    continue
+            if not split_one_side and (left_n < k or right_n < k):
+                continue
 
             if split_strategy == "residual_range":
                 if j == 0:
@@ -249,7 +246,7 @@ def best_split(
             better = False
             if impurity < best_impurity:
                 better = True
-            elif np.isclose(impurity, best_impurity):
+            elif np.isclose(impurity, best_impurity):  # noqa: SIM102
                 if balance < best_balance:
                     better = True
 

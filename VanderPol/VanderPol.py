@@ -1,10 +1,11 @@
-from scipy.integrate import odeint
-from matplotlib.ticker import AutoMinorLocator, MultipleLocator
+import json
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import json
+from matplotlib.ticker import AutoMinorLocator, MultipleLocator
+from scipy.integrate import odeint
+
 Range = 3.0
 rng = np.random.default_rng(0)
 
@@ -103,16 +104,117 @@ def plot_vanderpol():
         "ytick.direction": "out",
         "xtick.labelsize": 24,
         "ytick.labelsize": 24,
-        "legend.fontsize": 22,
+        "legend.fontsize": 17,
         "legend.frameon": False,
         "figure.facecolor": "white",
         "axes.facecolor": "white",
         "savefig.facecolor": "white",
-        "savefig.bbox": None,
         "pdf.fonttype": 42,
     }
 
-    def style_axes(ax):
+    with plt.rc_context(plot_style):
+        for j in range(2):
+            fig, ax = plt.subplots(figsize=FIG_SIZE, layout="constrained")
+
+            ax.plot(
+                ts,
+                true_traj[:, j],
+                color=TRUE_COLOR,
+                linewidth=3.0,
+                label="ODE Solution",
+                zorder=2,
+            )
+            ax.plot(
+                ts,
+                pac_traj[:, j],
+                color=PAC_COLOR,
+                linestyle="none",
+                marker="o",
+                markersize=1.5,
+                markerfacecolor="white",
+                markeredgewidth=1.2,
+                label="PAC Estimation",
+                zorder=3,
+            )
+
+            ax.set_xlabel(r"$t$ (s)")
+            ax.set_ylabel(rf"$s_{{{j + 1}}}$")
+            ax.set_xlim(0, ts[-1])
+            ax.margins(y=0.12)
+            ax.xaxis.set_major_locator(MultipleLocator(0.5))
+            ax.yaxis.set_major_locator(MultipleLocator(1.0))
+            ax.xaxis.set_minor_locator(AutoMinorLocator(2))
+            ax.yaxis.set_minor_locator(AutoMinorLocator(2))
+            ax.tick_params(which="major", length=4, width=0.8)
+            ax.tick_params(which="minor", length=2, width=0.6)
+            ax.grid(
+                which="major",
+                color="#DCE1E7",
+                linewidth=0.6,
+                linestyle="--",
+                alpha=0.8,
+            )
+            if j == 1:
+                ax.legend(
+                    loc="lower center",
+                    bbox_to_anchor=(0.5, 1.01),
+                    ncol=2,
+                    handlelength=1.3,
+                    handletextpad=0.5,
+                    columnspacing=1.0,
+                    borderaxespad=0.0,
+                )
+            fig.savefig(f"vanderpol_s{j + 1}.pdf", bbox_inches="tight")
+            plt.close(fig)
+
+        # s1 vs s2
+        fig, ax = plt.subplots(figsize=FIG_SIZE, layout="constrained")
+        ax.plot(
+            true_traj[:, 0],
+            true_traj[:, 1],
+            color=TRUE_COLOR,
+            linewidth=3.0,
+            label="ODE Solution",
+            zorder=2,
+        )
+        ax.plot(
+            pac_traj[:, 0],
+            pac_traj[:, 1],
+            color=PAC_COLOR,
+            linestyle="none",
+            marker="o",
+            markersize=1.5,
+            markerfacecolor="white",
+            markeredgewidth=1.2,
+            label="PAC Estimation",
+            zorder=3,
+        )
+        ax.plot(
+            true_traj[0, 0],
+            true_traj[0, 1],
+            color="#404040",
+            linestyle="none",
+            marker="o",
+            markersize=8,
+            zorder=4,
+        )
+        ax.annotate(
+            r"$t = 0$",
+            xy=(true_traj[0, 0], true_traj[0, 1]),
+            xytext=(-40, -20),
+            textcoords="offset points",
+            fontsize=20,
+            color="#303741",
+        )
+        ax.set_xlabel(r"$s_{1}$")
+        ax.set_ylabel(r"$s_{2}$")
+        ax.margins(0.12)
+        ax.xaxis.set_major_locator(MultipleLocator(1.0))
+        ax.yaxis.set_major_locator(MultipleLocator(1.0))
+        ax.xaxis.set_minor_locator(AutoMinorLocator(2))
+        ax.yaxis.set_minor_locator(AutoMinorLocator(2))
+        ax.tick_params(which="major", length=4, width=0.8)
+        ax.tick_params(which="minor", length=2, width=0.6)
         ax.grid(
             which="major",
             color="#DCE1E7",
@@ -120,114 +222,9 @@ def plot_vanderpol():
             linestyle="--",
             alpha=0.8,
         )
-        ax.xaxis.set_minor_locator(AutoMinorLocator(2))
-        ax.yaxis.set_minor_locator(AutoMinorLocator(2))
-        ax.tick_params(which="major", length=4, width=0.8)
-        ax.tick_params(which="minor", length=2, width=0.6)
-
-    def plot_comparison(ax, true_x, true_y, pac_x, pac_y):
-        ax.plot(
-            true_x,
-            true_y,
-            color=TRUE_COLOR,
-            linewidth=3.0,
-            label="ODE Solution",
-            zorder=2,
-        )
-        ax.plot(
-            pac_x,
-            pac_y,
-            color=PAC_COLOR,
-            linestyle="none",
-            marker="o",
-            markersize=4.5,
-            markerfacecolor="white",
-            markeredgewidth=1.2,
-            label="PAC Estimation",
-            zorder=3,
-        )
-
-    with plt.rc_context(plot_style):
-        # State components over time
-        for j in range(2):
-            fig, ax = plt.subplots(
-                figsize=FIG_SIZE,
-                layout="constrained",
-            )
-
-            plot_comparison(
-                ax,
-                ts, true_traj[:, j],
-                ts, pac_traj[:, j],
-            )
-
-            ax.set_xlabel(r"$t$")
-            ax.set_ylabel(rf"$s_{j + 1}$")
-            ax.set_xlim(ts[0] - 0.04, ts[-1] + 0.04)
-            ax.margins(y=0.12)
-
-            ax.xaxis.set_major_locator(MultipleLocator(0.5))
-            ax.yaxis.set_major_locator(MultipleLocator(1.0))
-
-            style_axes(ax)
-            if j==1:
-                ax.legend(
-                    loc="lower center",
-                    bbox_to_anchor=(0.5, 1.0),
-                    ncol=2,
-                    handlelength=1,
-                    handletextpad=0.5,
-                    columnspacing=1.0,
-                    labelspacing=0.3,
-                )
-            fig.savefig(
-                f"vanderpol_s{j + 1}.pdf",
-                bbox_inches=None,
-            )
-
-        # State trajectory
-        fig_phase, ax = plt.subplots(
-            figsize=FIG_SIZE,
-            layout="constrained",
-        )
-
-        plot_comparison(
-            ax,
-            true_traj[:, 0], true_traj[:, 1],
-            pac_traj[:, 0], pac_traj[:, 1],
-        )
-
-        ax.scatter(
-            *x_init,
-            s=28,
-            color="#303741",
-            zorder=4,
-        )
-        ax.annotate(
-            r"$t=0$",
-            xy=x_init,
-            xytext=(8, 9),
-            textcoords="offset points",
-            fontsize=22,
-            color="#303741",
-        )
-
-        ax.set_xlabel(r"$s_1$")
-        ax.set_ylabel(r"$s_2$")
-        ax.set_aspect("equal", adjustable="box")
-        ax.margins(x=0.12, y=0.15)
-
-        ax.xaxis.set_major_locator(MultipleLocator(1.0))
-        ax.yaxis.set_major_locator(MultipleLocator(1.0))
-
-        style_axes(ax)
         
-        fig_phase.savefig(
-            "vanderpol.pdf",
-            bbox_inches=None,
-        )
-
-    plt.show()
+        fig.savefig("vanderpol_phase.pdf", bbox_inches="tight")
+        plt.close(fig)
 
 
 global x_min, x_max

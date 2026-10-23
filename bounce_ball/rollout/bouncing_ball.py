@@ -1,9 +1,10 @@
-import numpy as np
-from scipy.integrate import odeint
-import matplotlib.pyplot as plt
-import pandas as pd
 import json
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 from matplotlib.ticker import AutoMinorLocator, MultipleLocator
+from scipy.integrate import odeint
 
 rng = np.random.default_rng(0)
 x_min = np.array([-0.05, -20.0])
@@ -120,7 +121,7 @@ def predict(xs, pieces):
 
 models = [load_model(path) for path in MODEL_PATHS]
 
-n_steps = int(round(t_end / dt))
+n_steps = round(t_end / dt)
 x0 = np.asarray(x_init, dtype=float).copy()
 x1 = x0.copy()
 pac_traj = [x0.copy()]

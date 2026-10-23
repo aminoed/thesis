@@ -1,10 +1,11 @@
-import re
 import json
 import math
+import re
+from pathlib import Path
+from typing import Any, Dict  # noqa: UP035
+
 import numpy as np
 import pandas as pd
-from pathlib import Path
-from typing import Dict, Any
 
 PAC_DIR = Path("PAC_PIECE")
 
@@ -15,7 +16,7 @@ FNAME_RE = re.compile(
 )
 
 
-def parse_meta_from_filename(path: Path) -> Dict[str, Any]:
+def parse_meta_from_filename(path: Path) -> Dict[str, Any]:  # noqa: UP006
     m = FNAME_RE.search(path.name)
     if not m:
         raise ValueError(f"Unrecognized filename pattern: {path.name}")
@@ -40,8 +41,8 @@ def get_n_sample(p):
         return int(p["n_sample"])
     if "idx" in p and p["idx"] is not None:
         try:
-            return int(len(p["idx"]))
-        except Exception:
+            return int(len(p["idx"]))  # noqa: RUF046
+        except Exception:  # noqa: BLE001, S110
             pass
     return None
 
@@ -152,7 +153,7 @@ def main():
         try:
             res = evaluate_one_model(path)
             rows.append(res)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             print(f"Error processing {path.name}: {e}")
 
     if not rows:
