@@ -102,12 +102,12 @@ x1 = x0.copy()
 pac_traj = [x0.copy()]
 true_traj = [x1.copy()]
 
-for i in range(200):
+for i in range(20):
     x0 = np.array([predict(x0, pieces)[0] for pieces in models])
     x1 = Phi(x1)
     pac_traj.append(x0.copy())
     true_traj.append(x1.copy())
-ts = dt * np.arange(200 + 1)
+ts = dt * np.arange(20 + 1)
 pac_traj = np.asarray(pac_traj)
 true_traj = np.asarray(true_traj)
 
@@ -197,15 +197,16 @@ with plt.rc_context(plot_style):
             ax.grid(
                 which="major", color="#DCE1E7", linewidth=0.6, linestyle="--", alpha=0.8
             )
-            ax.legend(
-                loc="lower center",
-                bbox_to_anchor=(0.5, 1.01),
-                ncol=2,
-                handlelength=1.3,
-                handletextpad=0.5,
-                columnspacing=1.0,
-                borderaxespad=0.0,
-            )
+            if j==1:
+                ax.legend(
+                    loc="lower center",
+                    bbox_to_anchor=(0.5, 1.01),
+                    ncol=2,
+                    handlelength=1.3,
+                    handletextpad=0.5,
+                    columnspacing=1.0,
+                    borderaxespad=0.0,
+                )
             fig.savefig(f"lorenz_{filename}.pdf", bbox_inches="tight")
             fig.savefig(f"lorenz_{filename}.png", dpi=180, bbox_inches="tight")
             plt.close(fig)
