@@ -35,7 +35,7 @@ x_max[:2] = [5.0, 5.0]
 MODEL_PATHS = [
     "PAC_PIECE/"
     f"pieces_a0.05_b1e-08_k50000"
-    f"_e{0.0001 if j in (8, 11) else 0.001 if j == 0 else 0.01}"
+    f"_e{0.0001 if j in (7, 8, 11) else 0.001 if j in (0, 9) else 0.01}"
     f"_m3_sresidual_range_NPAC1297_y{j}_new.json"
     for j in range(12)
 ]
