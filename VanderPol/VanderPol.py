@@ -190,23 +190,31 @@ def plot_vanderpol():
             label="PAC Estimation",
             zorder=3,
         )
-        ax.plot(
-            true_traj[0, 0],
-            true_traj[0, 1],
-            color="#404040",
-            linestyle="none",
-            marker="o",
-            markersize=8,
-            zorder=4,
-        )
-        ax.annotate(
-            r"$t = 0$",
-            xy=(true_traj[0, 0], true_traj[0, 1]),
-            xytext=(-40, -20),
-            textcoords="offset points",
-            fontsize=20,
-            color="#303741",
-        )
+        # Mark selected times along the ODE trajectory (skip t=3)
+        mark_offsets = {
+            0.0: (-40, -20),
+            1.0: (-50, 5),
+            2.0: (-45, 12),
+        }
+        for t_mark, offset in mark_offsets.items():
+            idx = int(np.argmin(np.abs(ts - t_mark)))
+            xy = (true_traj[idx, 0], true_traj[idx, 1])
+            ax.plot(
+                *xy,
+                color="#404040",
+                linestyle="none",
+                marker="o",
+                markersize=8,
+                zorder=4,
+            )
+            ax.annotate(
+                rf"$t = {t_mark:g}$",
+                xy=xy,
+                xytext=offset,
+                textcoords="offset points",
+                fontsize=20,
+                color="#303741",
+            )
         ax.set_xlabel(r"$s_{1}$")
         ax.set_ylabel(r"$s_{2}$")
         ax.margins(0.12)
