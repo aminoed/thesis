@@ -138,7 +138,8 @@ def plot_lorenz():
 
             ax.set_xlabel(r"$t$ (s)")
             ax.set_ylabel(rf"$s_{{{j + 1}}}$")
-            ax.set_xlim(0, ts[-1])
+            # Use nominal horizon (not ts[-1]≈0.499…) so the 0.5 s tick is shown
+            ax.set_xlim(0, 0.5)
             ax.margins(y=0.12)
             ax.xaxis.set_major_locator(MultipleLocator(0.1))
             ax.yaxis.set_major_locator(MultipleLocator(y_ticks[j]))

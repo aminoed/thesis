@@ -218,7 +218,8 @@ def plot_bounce_ball():
 
             ax.set_xlabel(r"$t$ (s)")
             ax.set_ylabel(rf"$s_{{{j + 1}}}$ ({state_units[j]})")
-            ax.set_xlim(0, ts[-1])
+            # Use nominal horizon (not ts[-1]≈4.999…) so the 5 s tick is shown
+            ax.set_xlim(0, 5.0)
             ax.margins(y=0.12)
             ax.xaxis.set_major_locator(MultipleLocator(1.0))
             ax.xaxis.set_minor_locator(AutoMinorLocator(2))
