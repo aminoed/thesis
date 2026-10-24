@@ -25,24 +25,15 @@ T_MIN_HEIGHT = 1.0             # after this time, s3 must stay above MIN_HEIGHT
 dt = 0.025
 rng = np.random.default_rng(0)
 CSV_PATH = "height_trajectories.csv"
-RECOMPUTE = False  # True: re-run rollouts; False: plot from CSV only
+RECOMPUTE = True  # True: re-run rollouts; False: plot from CSV only
 
 
-x_min = np.array([
-    -3.0, -3.0, -0.5, -2.0, -2.0, -3.0,
-    -0.2, -0.2, -0.4, -0.5, -0.5, -0.5,
-])
-x_max = np.array([
-    3.0, 3.0, 1.6, 2.0, 2.0, 1.0,
-    0.2, 0.2, 0.4, 0.5, 0.5, 0.5,
-])
-x_min[:2] = [-5.0, -5.0]
-x_max[:2] = [5.0, 5.0]
+x_min = np.array([-5.0, -5.0, -0.5, -0.8, -0.8, -2.5, -0.03, -0.03, -0.15, -0.03, -0.03, -0.03,])
+x_max = np.array([ 5.0, 5.0,   1.5,  0.8,  0.8, 0.8,  0.03, 0.03, 0.15, 0.03, 0.03, 0.03,])
+
 MODEL_PATHS = [
     "PAC_PIECE/"
-    f"pieces_a0.05_b1e-08_k50000"
-    f"_e{0.0001 if j in (7, 8, 11) else 0.001 if j in (0, 9) else 0.01}"
-    f"_m3_sresidual_range_NPAC1297_y{j}.json"
+    f"pieces_a0.05_b1e-08_k50000_e0.001_m3_sresidual_range_NPAC1297_y{j}_refine.json"
     for j in range(12)
 ]
 # MODEL_PATHS = [

@@ -13,7 +13,7 @@ ALPHA = 0.05
 BETA = 1e-8
 M_MAX = 3
 SPLIT_STRATEGY = "residual_range"
-EPS_STAR = 0.01 
+EPS_STAR = 0.001
 
 
 class BuildStates:
@@ -486,8 +486,8 @@ def serialize_piece(piece, X, y):
     }
     return saved_piece
 
-for OUTPUT in range(6,12):
-    data_file = f"quadrotor_y{OUTPUT}.csv"
+for OUTPUT in range(12):
+    data_file = f"quadrotor_y{OUTPUT}_refine.csv"
 
     data = pd.read_csv(data_file)
     input_columns = [f"x{i}" for i in range(12)]
@@ -498,12 +498,12 @@ for OUTPUT in range(6,12):
     N_PAC = n_pac_for_degree(ALPHA, BETA, d, 1)
     init_bounds = [(X[:, i].min(), X[:, i].max()) for i in range(d)]
 
-    if OUTPUT in (7, 8, 11):
-        EPS_STAR = 0.0001
-    elif OUTPUT in (0, 9):
-        EPS_STAR = 0.001
-    else:
-        EPS_STAR = 0.01
+    # if OUTPUT in (7, 8, 11):
+    #     EPS_STAR = 0.0001
+    # elif OUTPUT in (0, 9):
+    #     EPS_STAR = 0.001
+    # else:
+    #     EPS_STAR = 0.01
 
     DATA.__init__()
     DATA.start_timing()
@@ -537,7 +537,7 @@ for OUTPUT in range(6,12):
 
     tag = (
         f"a{ALPHA:g}_b{BETA:g}_k{sample_size}"
-        f"_e{EPS_STAR}_m{M_MAX}_s{SPLIT_STRATEGY}_NPAC{N_PAC}_y{OUTPUT}"
+        f"_e{EPS_STAR}_m{M_MAX}_s{SPLIT_STRATEGY}_NPAC{N_PAC}_y{OUTPUT}_refine"
     )
 
     os.makedirs("PAC_PIECE", exist_ok=True)

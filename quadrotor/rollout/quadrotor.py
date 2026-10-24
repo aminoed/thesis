@@ -22,29 +22,21 @@ dt = 0.025
 rng = np.random.default_rng(0)
 
 
-x_min = np.array([
-    -3.0, -3.0, -0.5, -2.0, -2.0, -3.0,
-    -0.2, -0.2, -0.4, -0.5, -0.5, -0.5,
-])
-x_max = np.array([
-    3.0, 3.0, 1.6, 2.0, 2.0, 1.0,
-    0.2, 0.2, 0.4, 0.5, 0.5, 0.5,
-])
-x_min[:2] = [-5.0, -5.0]
-x_max[:2] = [5.0, 5.0]
-MODEL_PATHS = [
-    "PAC_PIECE/"
-    f"pieces_a0.05_b1e-08_k50000"
-    f"_e{0.0001 if j in (7, 8, 11) else 0.001 if j in (0, 9) else 0.01}"
-    f"_m3_sresidual_range_NPAC1297_y{j}_new.json"
-    for j in range(12)
-]
+x_min = np.array([-5.0, -5.0, -0.5, -0.8, -0.8, -2.5, -0.03, -0.03, -0.15, -0.03, -0.03, -0.03,])
+x_max = np.array([ 5.0, 5.0,   1.5,  0.8,  0.8, 0.8,  0.03, 0.03, 0.15, 0.03, 0.03, 0.03,])
+
 # MODEL_PATHS = [
 #     "PAC_PIECE/"
-#     f"pieces_a0.05_b1e-08_k200000_e0.01_m3_sresidual_range_NPAC1297_y{j}.json"
+#     f"pieces_a0.05_b1e-08_k50000"
+#     f"_e{0.0001 if j in (7, 8, 11) else 0.001 if j in (0, 9) else 0.01}"
+#     f"_m3_sresidual_range_NPAC1297_y{j}.json"
 #     for j in range(12)
 # ]
-
+MODEL_PATHS = [
+    "PAC_PIECE/"
+    f"pieces_a0.05_b1e-08_k50000_e0.001_m3_sresidual_range_NPAC1297_y{j}_refine.json"
+    for j in range(12)
+]
 
 def Phi(x):
     x = np.asarray(x, dtype=float)
@@ -103,6 +95,7 @@ def pd_controller(state, target_height=TARGET_HEIGHT, target_roll=0.0, target_pi
 
 def sample_quadrotor(n, low=x_min, high=x_max):
     X = rng.uniform(low, high, size=(n, 12))
+
     Y = np.array([Phi(xi) for xi in X])
     return X, Y
 
@@ -166,7 +159,7 @@ def predict(xs, pieces):
 # input_columns = [f"x{i}" for i in range(12)]
 # for j in range(12):
 #     data = np.hstack((X, Y[:, j].reshape(-1, 1)))
-#     filename = f"quadrotor_y{j}_new.csv"
+#     filename = f"quadrotor_y{j}_refine.csv"
 #     pd.DataFrame(data, columns=input_columns + [f"y{j}"]).to_csv(
 #         filename, index=False
 #     )
@@ -174,8 +167,8 @@ models = [load_model(path) for path in MODEL_PATHS]
 
 initial_state = np.zeros(12)
 initial_state[:6] = rng.uniform(-0.4, 0.4, size=6)
-initial_state[6] = 0.05  
-initial_state[7] = -0.04
+initial_state[6:] = rng.uniform(-0.02, 0.02, size=6)
+
 x0 = np.asarray(initial_state, dtype=float).copy()
 x1 = x0.copy()
 pac_traj = [x0.copy()]
@@ -189,15 +182,7 @@ for i in range(200):
 ts = dt * np.arange(200 + 1)
 pac_traj = np.asarray(pac_traj)
 true_traj = np.asarray(true_traj)
-    # plt.plot(ts, pac_traj[:, 2], "o", color="black", markersize=3, label="PAC")
-    # plt.plot(ts, true_traj[:, 2], "-", color="red", label="True")
-    # plt.axhline(TARGET_HEIGHT, color="gray", linestyle="--", label="Target: 1 m")
-    # plt.xlabel("Time t (s)")
-    # plt.ylabel("Height x3 (m)")
-    # plt.grid()
-    # plt.legend()
-    # plt.savefig("height.png", dpi=150)
-    # plt.show()
+
 state_names = ["x", "y", "z", "u", "v", "w", "roll", "pitch", "yaw", "p", "q", "r"]
 state_units = ["m"] * 3 + ["m/s"] * 3 + ["rad"] * 3 + ["rad/s"] * 3
 error = pac_traj - true_traj

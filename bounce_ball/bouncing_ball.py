@@ -271,10 +271,26 @@ query_times = np.append(np.arange(dt, t_end, dt), t_end)
 ts = np.concatenate(([0.0], query_times))
 true_traj = np.array([x_init] + [Phi_hybrid(x_init, t) for t in query_times])
 
+# Landing-phase boundaries: velocity jumps at bounce impacts (~0.83 s, ~3.27 s)
+impact_times = ts[np.flatnonzero(np.diff(true_traj[:, 1]) > 1) + 1]
+t_splits = [0.0, *[float(t) for t in impact_times], 5.0]
+# e.g. [0, 0.83), [0.83, 3.27), [3.27, 5]
+interval_names = [
+    f"[{t_splits[k]:.2f},{t_splits[k + 1]:.2f}{')' if k < len(t_splits) - 2 else ']'}"
+    for k in range(len(t_splits) - 1)
+]
+pd.DataFrame(
+    {
+        "phase": [f"landing_{k + 1}" for k in range(len(interval_names))],
+        "t_interval": interval_names,
+        "t_lo": t_splits[:-1],
+        "t_hi": t_splits[1:],
+    }
+).to_csv("bounce_ball_time_intervals.csv", index=False)
+
 pac_traj = [x_init.copy()]
-err1, eps1 = [], []
-err2, eps2 = [], []
-err3, eps3 = [], []
+phase_err = [[] for _ in interval_names]
+phase_eps = [[] for _ in interval_names]
 
 for i, t in enumerate(query_times):
     xs = [x_init[0], x_init[1], float(t)]
@@ -284,21 +300,19 @@ for i, t in enumerate(query_times):
 
     err = np.abs([y1, y2] - true_traj[i + 1])
     eps = [p1["epsilon"], p2["epsilon"]]
-    if t < 1:
-        err1.append(err); eps1.append(eps)
-    elif t < 3:
-        err2.append(err); eps2.append(eps)
-    else:
-        err3.append(err); eps3.append(eps)
+    # assign to landing phase: last interval is closed on the right
+    for k in range(len(t_splits) - 1):
+        lo, hi = t_splits[k], t_splits[k + 1]
+        if (t < hi) if k < len(t_splits) - 2 else (t <= hi):
+            if t >= lo:
+                phase_err[k].append(err)
+                phase_eps[k].append(eps)
+            break
 
 pac_traj = np.asarray(pac_traj)
 
 rows = []
-for name, err_list, eps_list in [
-    ("[0,1)", err1, eps1),
-    ("[1,3)", err2, eps2),
-    ("[3,5]", err3, eps3),
-]:
+for name, err_list, eps_list in zip(interval_names, phase_err, phase_eps):
     err = np.asarray(err_list)
     eps = np.asarray(eps_list)
     for j, state in enumerate(["s1", "s2"]):
