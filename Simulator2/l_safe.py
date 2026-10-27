@@ -7,7 +7,7 @@ import sys
 import numpy as np
 import pandas as pd
 from scipy.optimize import minimize
-
+from GPUPowerFNN import load_fnn, predict_power_fnn
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PAC_DIR = os.path.join(BASE_DIR, "PAC_PIECE")
@@ -53,9 +53,10 @@ def get_power_limit(n_gpu):
     return get_power_target(n_gpu) + SAFE_MARGIN_PER_GPU * n_gpu
 
 
-def system_power(GPU_freqs, CPU_freq, gpu_coefs, cpu_coef):
-    # Actual power from Simulator I, used only for safety monitoring.
-    return float(np.dot(GPU_freqs, gpu_coefs) + CPU_freq * cpu_coef)
+def system_power(state):
+    return float(predict_power_fnn(
+        fnn_model, np.asarray(state, dtype=float), fnn_device, fnn_scaler
+    ))
 
 
 def compute_power(delta_gpu_freqs, delta_cpu_freqs, current_power,
@@ -231,11 +232,10 @@ def constrained_pac(pac_path):
     x_min = piece_lo.copy()
     x_max = piece_hi.copy()
 
-    # Simulator I has one frequency per GPU, followed by CPU frequency.
-    x_min[:-1] = min_GPU_freq
-    x_max[:-1] = max_GPU_freq
-    x_min[-1] = min_CPU_freq
-    x_max[-1] = max_CPU_freq
+    x_min[GPU_FREQ_IDX] = min_GPU_freq
+    x_max[GPU_FREQ_IDX] = max_GPU_freq
+    x_min[CPU_FREQ_IDX] = min_CPU_freq
+    x_max[CPU_FREQ_IDX] = max_CPU_freq
 
 
 def predict(xs):
@@ -278,13 +278,10 @@ def random_state_update(state, x_min, x_max):
 
 
 def load_dataset(n_gpu):
-    filename = f"Simulator1_gpu{n_gpu}_{20000 * n_gpu}.csv"
+    filename = f"FNN_{n_gpu}_{20000 * n_gpu}.csv"
     df = pd.read_csv(os.path.join(BASE_DIR, filename))
 
-    x_cols = [f"gpu{i}_freq" for i in range(1, n_gpu + 1)]
-    x_cols.append("cpu_freq")
-
-    X = df[x_cols].to_numpy(dtype=float)
+    X = df[fnn_x_cols].to_numpy(dtype=float)
     y = df["total_power"].to_numpy(dtype=float)
 
     return X, y, X.min(axis=0), X.max(axis=0)
@@ -317,7 +314,7 @@ def mpc_with_pac(current_state, current_GPU_freqs, current_CPU_freqs,
                  gpu_coefs, cpu_coefs, target):
     power_pred, pac_piece = predict(current_state)
 
-    if pac_piece is None:
+    if pac_piece is None or pac_piece["epsilon"] > EPSILON_STAR:
         return conservative_control(
             current_GPU_freqs, current_CPU_freqs
         ), "CON"
@@ -380,7 +377,7 @@ np.random.seed(0)
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 log_path = os.path.join(
-    OUTPUT_DIR, "output_lsafe_simulator1.log"
+    OUTPUT_DIR, "output_lsafe_simulator2.log"
 )
 summary_path = os.path.join(
     OUTPUT_DIR, "lsafe_summary.csv"
@@ -397,17 +394,27 @@ sys.stderr = log_file
 
 try:
     for pac_m in pac_db:
+        n_gpu = pac_m["ngpu"]
+
+        fnn_model, fnn_device, fnn_scaler, fnn_state = load_fnn(
+            os.path.join(BASE_DIR, f"fnn_gpu_{n_gpu}.pt")
+        )
+        fnn_x_cols = fnn_state["x_cols"]
+
+        GPU_FREQ_IDX = [
+            fnn_x_cols.index(f"gpu{i}_freq") for i in range(n_gpu)
+        ]
+        CPU_FREQ_IDX = fnn_x_cols.index("cpu_freq")
+        EPSILON_STAR = pac_m["eps"]
+
         constrained_pac(pac_m["path"])
         no_match_reports = 0
 
-        n_gpu = pac_m["ngpu"]
-
-        if len(piece_lo) != n_gpu + 1:
+        if len(piece_lo) != len(fnn_x_cols):
             raise ValueError(
                 f"PAC dimension mismatch: {pac_m['path']}"
             )
 
-        # Keep the frequency bounds set by constrained_pac().
         X, y, _, _ = load_dataset(n_gpu)
 
         gpu_coefs = COEFFICIENTS[n_gpu]["gpu"]
@@ -432,21 +439,15 @@ try:
             )
             init_state = X[init_idx].copy()
 
-            current_GPU_freqs = init_state[:-1].copy()
-            current_CPU_freq = float(init_state[-1])
+            current_state = init_state.copy()
+            current_GPU_freqs = current_state[GPU_FREQ_IDX].copy()
+            current_CPU_freq = float(current_state[CPU_FREQ_IDX])
 
             steps = L_safe
 
             for step in range(steps):
-                current_state = np.concatenate(
-                    [current_GPU_freqs, [current_CPU_freq]]
-                )
-
                 # Actual power is used only for safety monitoring.
-                power = system_power(
-                    current_GPU_freqs, current_CPU_freq,
-                    gpu_coefs, cpu_coefs
-                )
+                power = system_power(current_state)
 
                 print(f"Step {step}: power={power:.3f}")
 
@@ -478,9 +479,10 @@ try:
                     min_CPU_freq, max_CPU_freq
                 ))
 
-                full_state = np.concatenate(
-                    [current_GPU_freqs, [current_CPU_freq]]
-                )
+                full_state = current_state.copy()
+                full_state[GPU_FREQ_IDX] = current_GPU_freqs
+                full_state[CPU_FREQ_IDX] = current_CPU_freq
+                
                 full_state = random_state_update(
                     full_state, x_min, x_max
                 )
@@ -490,14 +492,12 @@ try:
                     full_state, piece_lo, piece_hi
                 )
 
-                current_GPU_freqs = full_state[:-1].copy()
-                current_CPU_freq = float(full_state[-1])
+                current_state = full_state
+                current_GPU_freqs = current_state[GPU_FREQ_IDX].copy()
+                current_CPU_freq = float(current_state[CPU_FREQ_IDX])
 
                 # Check the updated state, including the last step.
-                power = system_power(
-                    current_GPU_freqs, current_CPU_freq,
-                    gpu_coefs, cpu_coefs
-                )
+                power = system_power(current_state)
 
                 if power > P_limit:
                     L_safe = step

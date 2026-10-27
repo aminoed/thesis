@@ -503,12 +503,12 @@ for n_gpu in GPU_LIST:
     sys.stderr = log_file
 
     try:
-        if n_gpu == 1:
-            kf = RandomWalkKalman(Q=0, R=0)
-        elif n_gpu == 2:
-            kf = RandomWalkKalman(Q=0, R=0)
-        elif n_gpu == 4:
-            kf = RandomWalkKalman(Q=0, R=0)
+    #     if n_gpu == 1:
+    #         kf = RandomWalkKalman(Q=0, R=0)
+    #     elif n_gpu == 2:
+    #         kf = RandomWalkKalman(Q=0, R=0)
+    #     elif n_gpu == 4:
+    #         kf = RandomWalkKalman(Q=0, R=0)
 
         P_target = get_power_target(n_gpu)
         print(f"\n===== Running GPU = {n_gpu} =====")
@@ -562,8 +562,8 @@ for n_gpu in GPU_LIST:
                             current_CPU_freq = current_CPU_state
 
                             pred_period = 0
-                            if method == "kalman":
-                                kf.reset()  # same Q/R, fresh state for this error/run
+                            # if method == "kalman":
+                            #     kf.reset()  # same Q/R, fresh state for this error/run
 
                             # Simulate multiple control periods
                             for step in range(steps):
@@ -608,7 +608,7 @@ for n_gpu in GPU_LIST:
                                         gpu_coefs=gpu_coefs,
                                         cpu_coefs=cpu_coefs,
                                         target=P_target,
-                                        delta_period=10,
+                                        delta_period=100,
                                         EPSILON_STAR=EPSILON_STAR,
                                     )
 
@@ -646,16 +646,16 @@ for n_gpu in GPU_LIST:
                                     if mode == "CON":
                                         num_con += 1
                                     mode_series.append(mode)
-                                elif method == "kalman":
-                                    filtered_power = kf.update(power_meter)
-                                    u = mpc(
-                                        filtered_power,
-                                        P_target,
-                                        current_GPU_freqs,
-                                        current_CPU_freq,
-                                        gpu_coefs,
-                                        cpu_coefs,
-                                    )
+                                # elif method == "kalman":
+                                #     filtered_power = kf.update(power_meter)
+                                #     u = mpc(
+                                #         filtered_power,
+                                #         P_target,
+                                #         current_GPU_freqs,
+                                #         current_CPU_freq,
+                                #         gpu_coefs,
+                                #         cpu_coefs,
+                                #     )
 
                                 elif method == "mov_avg":
                                     if step == 0:
