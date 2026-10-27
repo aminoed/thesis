@@ -1,5 +1,7 @@
 ngpu,alpha,beta,k,eps,m,split,npac,pac_model,P_safe,P_limit,L_max,L_safe,n_test_required,n_test_completed,state_noise
-1,0.05,1e-08,20000,25.0,1,maximum_residual,897,pieces_NGPU1_a0.05_b1e-08_k20000_e25_m1_maximum_residual_NPAC897.json,775,760,100,0,360,1,0.05
-1,0.05,1e-08,20000,25.0,1,residual_range,897,pieces_NGPU1_a0.05_b1e-08_k20000_e25_m1_residual_range_NPAC897.json,775,760,100,0,360,12,0.05
-2,0.05,1e-08,40000,30.0,1,maximum_residual,937,pieces_NGPU2_a0.05_b1e-08_k40000_e30_m1_maximum_residual_NPAC937.json,950,920,100,0,360,2,0.05
-2,0.05,1e-08,40000,30.0,1,residual_range,937,pieces_NGPU2_a0.05_b1e-08_k40000_e30_m1_residual_range_NPAC937.json,950,920,100,0,360,16,0.05
+1,0.05,1e-08,20000,25.0,1,maximum_residual,897,pieces_NGPU1_a0.05_b1e-08_k20000_e25_m1_maximum_residual_NPAC897.json,775,760,100,100,360,360,0.01
+1,0.05,1e-08,20000,25.0,1,residual_range,897,pieces_NGPU1_a0.05_b1e-08_k20000_e25_m1_residual_range_NPAC897.json,775,760,100,100,360,360,0.01
+2,0.05,1e-08,40000,30.0,1,maximum_residual,937,pieces_NGPU2_a0.05_b1e-08_k40000_e30_m1_maximum_residual_NPAC937.json,950,920,100,100,360,360,0.01
+2,0.05,1e-08,40000,30.0,1,residual_range,937,pieces_NGPU2_a0.05_b1e-08_k40000_e30_m1_residual_range_NPAC937.json,950,920,100,100,360,360,0.01
+4,0.05,1e-08,80000,40.0,1,maximum_residual,1017,pieces_NGPU4_a0.05_b1e-08_k80000_e40_m1_maximum_residual_NPAC1017.json,1300,1240,100,100,360,360,0.01
+4,0.05,1e-08,80000,40.0,1,residual_range,1017,pieces_NGPU4_a0.05_b1e-08_k80000_e40_m1_residual_range_NPAC1017.json,1300,1240,100,100,360,360,0.01

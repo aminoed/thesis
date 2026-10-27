@@ -34,12 +34,9 @@ min_CPU_freq, max_CPU_freq = 1100, 2100
 
 N_TEST = 360
 L_MAX = 100
-
-# Same state perturbations as Simulator I online control.
-STATE_NOISE = 0.05
+STATE_NOISE = 0.01
 
 SAFE_MARGIN_PER_GPU = 25
-CHECK_MARGIN_PER_GPU = 15
 
 INIT_BELOW_TARGET_LO = 100
 INIT_BELOW_TARGET_HI = 50
@@ -242,15 +239,10 @@ def constrained_pac(pac_path):
 
 
 def predict(xs):
-    global no_match_reports
-
     xs = np.asarray(xs, dtype=float).ravel()
-    verbose = no_match_reports < NO_MATCH_REPORT_LIMIT
-    p = select_piece(xs, pieces, verbose=verbose)
+    p = select_piece(xs, pieces, verbose=False)
 
     if p is None:
-        if verbose:
-            no_match_reports += 1
         return None, None
 
     w = p["w"]
@@ -423,8 +415,8 @@ try:
 
         P_target = get_power_target(n_gpu)
         P_safe = get_power_limit(n_gpu)
-        P_limit = P_safe - CHECK_MARGIN_PER_GPU * n_gpu
-
+        P_limit = P_safe
+        
         L_max = L_MAX
         L_safe = L_max
         NPAC = N_TEST
