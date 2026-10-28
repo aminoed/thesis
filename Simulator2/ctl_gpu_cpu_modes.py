@@ -177,6 +177,29 @@ def mpc(
     return delta
 
 
+class RandomWalkKalman:
+    def __init__(self, Q=0.2, R=4.0, initial_power=None, initial_P=1.0):
+        self.Q = Q  # Process noise variance
+        self.R = R  # Measurement noise variance
+        self.P = initial_P  # Estimation covariance
+        self.x = initial_power  # Current estimate
+
+    def update(self, measured_power):
+        if self.x is None:
+            self.x = measured_power
+            return self.x
+
+        x_pred = self.x
+        P_pred = self.P + self.Q
+
+        K = P_pred / (P_pred + self.R)
+
+        self.x = x_pred + K * (measured_power - x_pred)
+        self.P = (1 - K) * P_pred
+
+        return self.x
+
+
 def load_model(model_path):
     # zhuo: read the adaptive subdivision model from json
     with open(model_path, "r", encoding="utf-8") as f:
@@ -296,7 +319,7 @@ def random_state_update(state, x_min, x_max):
     # values in the training set; walking them makes the FNN invent a large
     # power change. Frequencies are the control command and stay as set.
     state = state.copy()
-    noise_level = 0.05
+    noise_level = 0.01
     ranges = x_max - x_min
     noise = np.random.uniform(-noise_level, noise_level, size=state.shape)
     for i, name in enumerate(fnn_x_cols):
@@ -311,14 +334,14 @@ def random_state_update(state, x_min, x_max):
 
 def apply_power_error(power, error_type, P_min=350, P_max=4400):
     P_min = P_min / 4 * n_gpu
-    P_max = P_max / 8 * n_gpu
+    P_max = P_max / 4 * n_gpu
     if error_type == "offset":
         if np.random.uniform(0, 1) < 0.5:
             return power + np.random.uniform(0, 50) * n_gpu
         else:
             return power + np.random.uniform(-50, 0) * n_gpu
     elif error_type == "mul":
-        return power + np.random.uniform(0, 1) * power
+        return np.random.uniform(0, 2) * power
     elif error_type == "stuck_min":
         return P_min
     elif error_type == "stuck_max":
@@ -473,8 +496,8 @@ def parse_pac_filename(path):
 # Zhuo: steps represents how many steps the system would run for each control period
 #       error is the percentage of the possibility that the power meter would have wrong readings
 steps = 500
-runs = 100
-ControlMethod = ["pac", "mpc", "con", "mov_avg"]
+runs = 50
+ControlMethod = ["pac", "mpc", "con", "kalman", "mov_avg"]
 
 np.random.seed(0)  # this is just the random seed set for the error above
 
@@ -523,6 +546,13 @@ for n_gpu in GPU_LIST:
     sys.stderr = log_file
 
     try:
+        if n_gpu == 1:
+            kf = RandomWalkKalman(Q=2.44, R=4.28)
+        elif n_gpu == 2:
+            kf = RandomWalkKalman(Q=13.03, R=6.45)
+        elif n_gpu == 4:
+            kf = RandomWalkKalman(Q=51.53, R=59.92)
+
         P_target = get_power_target(n_gpu)
         print(f"\n===== Running GPU = {n_gpu} =====")
 
@@ -573,7 +603,9 @@ for n_gpu in GPU_LIST:
                             current_CPU_freq = float(current_state[CPU_FREQ_IDX])
 
                             pred_period = 0
-
+                            if method == "kalman":
+                                kf.x = None
+                                kf.P = 1.0
 
                             # Simulate multiple control periods
                             for step in range(steps):
@@ -648,7 +680,11 @@ for n_gpu in GPU_LIST:
                                         num_mpc += 1
 
                                     mode_series.append(mode)
-                                
+                                elif method == "kalman":
+                                    filtered_power = kf.update(power_meter)
+                                    u = mpc(filtered_power, P_target, current_GPU_freqs,
+                                        current_CPU_freq, gpu_coefs, cpu_coefs)
+
                                 elif method == "mov_avg":
                                     if step == 0:
                                         power_avg = power_meter

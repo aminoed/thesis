@@ -166,7 +166,7 @@ def select_piece(xs, pieces):
     #       tol is the tolerance parameter because sometimes the state will be out of the boundary we learned,
     #       and it can be adjusted to a greater number if no piece matches (like 0.1)
     xs = np.asarray(xs, dtype=float).ravel()
-    tol = 0.1 * (x_max - x_min)
+    tol = 0.01 * (x_max - x_min)
     tol_vec = np.asarray(tol, dtype=float).ravel()
 
     d = len(xs)
@@ -260,7 +260,7 @@ def random_state_update(state, x_min, x_max):
     #       even if we add noises to the ML tasks, if it's 0,
     #       then there shouldn't have any fluctuations for the curve once it converges to the power limits
     state = state.copy()
-    noise = 0.0  # this is for debug
+    noise = 0.01  # this is for debug
     ranges = x_max - x_min
     noise = np.random.uniform(-noise, noise, size=state.shape)
     state = state + noise * ranges
@@ -272,14 +272,14 @@ def random_state_update(state, x_min, x_max):
 
 def apply_power_error(power, error_type, P_min=350, P_max=4400):
     P_min = P_min / 4 * n_gpu
-    P_max = P_max / 8 * n_gpu
+    P_max = P_max / 4 * n_gpu
     if error_type == "offset":
         if np.random.uniform(0, 1) < 0.5:
             return power + np.random.uniform(0, 50) * n_gpu
         else:
             return power + np.random.uniform(-50, 0) * n_gpu
     elif error_type == "mul":
-        return power + np.random.uniform(0, 1) * power
+        return np.random.uniform(0, 2) * power
     elif error_type == "stuck_min":
         return P_min
     elif error_type == "stuck_max":
@@ -390,39 +390,6 @@ def just_con(
         return u, "MPC"
 
 
-class RandomWalkKalman:
-    def __init__(self, Q=0.2, R=4.0, initial_power=None, initial_P=1.0):
-        self.Q = Q  # Process noise variance
-        self.R = R  # Measurement noise variance
-        self.initial_P = initial_P
-        self.P = initial_P  # Estimation covariance
-        self.x = initial_power  # Current estimate
-
-    def reset(self):
-        # Keep Q/R (per-GPU config); clear filter state between error/run
-        self.x = None
-        self.P = self.initial_P
-
-    def update(self, measured_power):
-        if self.x is None:
-            self.x = measured_power
-            return self.x
-
-        # Floor Q/R so P_pred+R never hits 0 when fitted noise is exactly 0
-        Q = max(self.Q, 1e-2)
-        R = max(self.R, 1e-2)
-
-        x_pred = self.x
-        P_pred = self.P + Q
-
-        K = P_pred / (P_pred + R)
-
-        self.x = x_pred + K * (measured_power - x_pred)
-        self.P = (1 - K) * P_pred
-
-        return self.x
-
-
 def to_python(obj):
     if isinstance(obj, dict):
         return {k: to_python(v) for k, v in obj.items()}
@@ -467,8 +434,8 @@ def parse_pac_filename(path):
 # Zhuo: steps represents how many steps the system would run for each control period
 #       error is the percentage of the possibility that the power meter would have wrong readings
 steps = 500
-runs = 100
-ControlMethod = ["pac", "mpc", "con", "kalman", "mov_avg"]
+runs = 50
+ControlMethod = ["pac", "mpc", "con", "mov_avg"]
 
 np.random.seed(0)  # this is just the random seed set for the error above
 
@@ -476,7 +443,7 @@ np.random.seed(0)  # this is just the random seed set for the error above
 
 error_types = ["offset", "mul", "stuck_min", "stuck_max", "out_of_range"]
 # error_types = ["offset", "mul", "stuck_min", "stuck_max", "out_of_range", "failure", "none"]
-GPU_LIST = [2, 4]
+GPU_LIST = [1, 2, 4]
 
 all_pac_files = glob.glob("PAC_PIECE/*.json")
 
@@ -527,13 +494,9 @@ for n_gpu in GPU_LIST:
                             f"[FATAL] PAC dimension mismatch: "
                             f"expected {n_gpu + 1}, got {len(piece_lo)}, file={pac_m['path']}"
                         )
-                    init_state = piece_lo.copy()
                     EPSILON_STAR = pac_m["eps"]
                     pac_tag = os.path.basename(pac_m["path"])
                 else:
-                    init_state = np.concatenate(
-                        [np.ones(n_gpu) * min_GPU_freq, [min_CPU_freq]]
-                    )
                     x_min = np.concatenate(
                         [np.full(n_gpu, min_GPU_freq), [min_CPU_freq]]
                     )
@@ -542,6 +505,10 @@ for n_gpu in GPU_LIST:
                     )
                     pac_tag = "none"
 
+                init_state = np.concatenate(
+                    [np.ones(n_gpu) * min_GPU_freq, [min_CPU_freq]]
+                )
+
                 for error_rate in [0.1, 0.5]:
                     for error in error_types:
                         setting_runs = []
@@ -549,6 +516,7 @@ for n_gpu in GPU_LIST:
                             f"\n===== Error Rate {error_rate}, Type: {error} ====="
                         )
                         for run in range(runs):
+                            np.random.seed(run)
                             error_mask = np.random.rand(steps) < error_rate
                             num_pac = num_mpc = num_unsafe = num_con = 0
                             powercontrol = []  # actual power series
@@ -645,6 +613,8 @@ for n_gpu in GPU_LIST:
                                     )
                                     if mode == "CON":
                                         num_con += 1
+                                    elif mode == "MPC":
+                                        num_mpc += 1
                                     mode_series.append(mode)
                                 # elif method == "kalman":
                                 #     filtered_power = kf.update(power_meter)
@@ -701,6 +671,11 @@ for n_gpu in GPU_LIST:
                                     )
                                     current_GPU_states = full_state[:-1]
                                     current_CPU_state = full_state[-1]
+
+                                current_GPU_freqs = np.asarray(
+                                    current_GPU_states, dtype=float
+                                ).copy()
+                                current_CPU_freq = float(current_CPU_state)
 
                             power_arr = np.array(powercontrol)
                             run_result = {
