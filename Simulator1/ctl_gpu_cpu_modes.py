@@ -260,7 +260,7 @@ def random_state_update(state, x_min, x_max):
     #       even if we add noises to the ML tasks, if it's 0,
     #       then there shouldn't have any fluctuations for the curve once it converges to the power limits
     state = state.copy()
-    noise = 0.05  # this is for debug
+    noise = 0.0  # this is for debug
     ranges = x_max - x_min
     noise = np.random.uniform(-noise, noise, size=state.shape)
     state = state + noise * ranges

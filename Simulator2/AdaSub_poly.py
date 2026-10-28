@@ -10,11 +10,11 @@ import time
 
 
 N_GPUs = 1
-ALPHA = 0.05
+ALPHA = 0.1
 BETA = 1e-8
-M_MAX = 1
-# SPLIT_STRATEGY = "residual_range" 
-SPLIT_STRATEGY = "maximum_residual"
+M_MAX = 3
+SPLIT_STRATEGY = "residual_range" 
+# SPLIT_STRATEGY = "maximum_residual"
 EPS_STAR = 20 + 5 * N_GPUs
 
 

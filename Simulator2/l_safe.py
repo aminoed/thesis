@@ -28,13 +28,14 @@ PREDICTION_HORIZON = 2
 Q = 500
 R = 0.01
 
-# Same frequency limits as Simulator I.
+# Same frequency limits as Simulator II online control.
 min_GPU_freq, max_GPU_freq = 495, 1380
-min_CPU_freq, max_CPU_freq = 1100, 2100
+CPU_FREQ_FIXED = 2000.0
+min_CPU_freq = max_CPU_freq = CPU_FREQ_FIXED
 
 N_TEST = 360
 L_MAX = 100
-STATE_NOISE = 0.01
+STATE_NOISE = 0.00
 
 SAFE_MARGIN_PER_GPU = 25
 
@@ -65,6 +66,10 @@ def compute_power(delta_gpu_freqs, delta_cpu_freqs, current_power,
             + delta_cpu_freqs * cpu_coef + current_power)
 
 
+def cpu_is_fixed():
+    return min_CPU_freq >= max_CPU_freq
+
+
 def get_dynamic_bounds(GPU_freqs, CPU_freq):
     n_gpu = len(GPU_freqs)
 
@@ -75,52 +80,62 @@ def get_dynamic_bounds(GPU_freqs, CPU_freq):
         lower_bounds.append(min_GPU_freq - GPU_freqs[i])
         upper_bounds.append(max_GPU_freq - GPU_freqs[i])
 
-    lower_bounds.append(min_CPU_freq - CPU_freq)
-    upper_bounds.append(max_CPU_freq - CPU_freq)
+    # Fixed CPU: do not put a zero-width Δcpu bound into SLSQP.
+    if not cpu_is_fixed():
+        lower_bounds.append(min_CPU_freq - CPU_freq)
+        upper_bounds.append(max_CPU_freq - CPU_freq)
 
-    lower_bounds = np.array(lower_bounds * CONTROL_HORIZON)
-    upper_bounds = np.array(upper_bounds * CONTROL_HORIZON)
+    lower_bounds = np.array(lower_bounds * CONTROL_HORIZON, dtype=float)
+    upper_bounds = np.array(upper_bounds * CONTROL_HORIZON, dtype=float)
 
-    if np.any(lower_bounds >= upper_bounds):
+    if np.any(lower_bounds > upper_bounds):
         raise ValueError("Dynamic bounds are invalid. Check the logic.")
 
     return lower_bounds, upper_bounds
 
 
 def conservative_control(current_GPU_freqs, current_CPU_freqs):
-    cpu_ctl = min_CPU_freq - current_CPU_freqs
+    cpu_ctl = 0.0 if cpu_is_fixed() else min_CPU_freq - current_CPU_freqs
     return np.array(
-        [min_GPU_freq - f for f in current_GPU_freqs] + [cpu_ctl]
+        [min_GPU_freq - f for f in current_GPU_freqs] + [cpu_ctl],
+        dtype=float,
     )
 
 
 def mpc(current_power, target, current_GPU_freqs, current_CPU_freqs,
         gpu_coefs, cpu_coef):
     n_gpu = len(current_GPU_freqs)
-    PROCESSOR_NUM = n_gpu + 1
+    # Decision vars: GPU deltas only when CPU frequency is locked.
+    n_ctrl = n_gpu if cpu_is_fixed() else n_gpu + 1
+    out_dim = n_gpu + 1
 
     def objective(x):
-        control_sequence = x.reshape((CONTROL_HORIZON, PROCESSOR_NUM))
-        predicted_GPU_freqs = np.array(current_GPU_freqs)
-        predicted_CPU_freqs = current_CPU_freqs
-        cost = 0
+        control_sequence = x.reshape((CONTROL_HORIZON, n_ctrl))
+        predicted_GPU_freqs = np.array(current_GPU_freqs, dtype=float)
+        predicted_CPU_freqs = float(current_CPU_freqs)
+        cost = 0.0
 
         for k in range(PREDICTION_HORIZON):
             if k < CONTROL_HORIZON:
-                delta = control_sequence[k]
+                delta_gpu = control_sequence[k, :n_gpu]
+                delta_cpu = (
+                    0.0 if cpu_is_fixed() else float(control_sequence[k, -1])
+                )
             else:
-                delta = np.zeros(PROCESSOR_NUM)
+                delta_gpu = np.zeros(n_gpu)
+                delta_cpu = 0.0
 
             for i in range(n_gpu):
                 predicted_GPU_freqs[i] = np.clip(
-                    predicted_GPU_freqs[i] + delta[i],
+                    predicted_GPU_freqs[i] + delta_gpu[i],
                     min_GPU_freq, max_GPU_freq
                 )
 
-            predicted_CPU_freqs = np.clip(
-                predicted_CPU_freqs + delta[-1],
-                min_CPU_freq, max_CPU_freq
-            )
+            if not cpu_is_fixed():
+                predicted_CPU_freqs = np.clip(
+                    predicted_CPU_freqs + delta_cpu,
+                    min_CPU_freq, max_CPU_freq
+                )
 
             mpc_power = compute_power(
                 [predicted_GPU_freqs[i] - current_GPU_freqs[i]
@@ -134,14 +149,14 @@ def mpc(current_power, target, current_GPU_freqs, current_CPU_freqs,
             cost += Q * (mpc_power - target) ** 2
 
             if k < CONTROL_HORIZON:
-                cost += R * (
-                    np.sum((max_GPU_freq - predicted_GPU_freqs) ** 2)
-                    + (max_CPU_freq - predicted_CPU_freqs) ** 2
-                )
+                effort = np.sum((max_GPU_freq - predicted_GPU_freqs) ** 2)
+                if not cpu_is_fixed():
+                    effort += (max_CPU_freq - predicted_CPU_freqs) ** 2
+                cost += R * effort
 
         return cost
 
-    x0 = np.zeros(CONTROL_HORIZON * PROCESSOR_NUM)
+    x0 = np.zeros(CONTROL_HORIZON * n_ctrl)
 
     lower_bounds, upper_bounds = get_dynamic_bounds(
         current_GPU_freqs, current_CPU_freqs
@@ -154,10 +169,10 @@ def mpc(current_power, target, current_GPU_freqs, current_CPU_freqs,
     )
 
     if result.success and result.x is not None and len(result.x) > 0:
-        return result.x[:PROCESSOR_NUM]
+        return np.concatenate([result.x[:n_gpu], [0.0]])
 
     print("Optimization failed:", result.message)
-    return np.zeros(PROCESSOR_NUM)
+    return np.zeros(out_dim)
 
 
 def load_model(model_path):
@@ -188,7 +203,7 @@ def load_model(model_path):
 def select_piece(xs, pieces, verbose=True):
     xs = np.asarray(xs, dtype=float).ravel()
 
-    # Same tolerance as Simulator I online control.
+    # Same tolerance as Simulator II online control.
     tol = 0.1 * (x_max - x_min)
 
     models = []
@@ -265,7 +280,7 @@ def predict(xs):
 
 
 def random_state_update(state, x_min, x_max):
-    # Same state update as Simulator I online control.
+    # Same state update as Simulator II online control.
     state = state.copy()
     ranges = x_max - x_min
 
@@ -357,7 +372,6 @@ def parse_pac_filename(path):
     }
 
 
-
 all_pac_files = sorted(
     glob.glob(os.path.join(PAC_DIR, "*.json"))
 )
@@ -415,7 +429,16 @@ try:
                 f"PAC dimension mismatch: {pac_m['path']}"
             )
 
-        X, y, _, _ = load_dataset(n_gpu)
+        # Same public state bounds as Simulator II online control.
+        X, y, state_lo, state_hi = load_dataset(n_gpu)
+
+        x_min = state_lo.copy()
+        x_max = state_hi.copy()
+
+        x_min[GPU_FREQ_IDX] = min_GPU_freq
+        x_max[GPU_FREQ_IDX] = max_GPU_freq
+        x_min[CPU_FREQ_IDX] = CPU_FREQ_FIXED
+        x_max[CPU_FREQ_IDX] = CPU_FREQ_FIXED
 
         gpu_coefs = COEFFICIENTS[n_gpu]["gpu"]
         cpu_coefs = COEFFICIENTS[n_gpu]["cpu"]
@@ -423,7 +446,7 @@ try:
         P_target = get_power_target(n_gpu)
         P_safe = get_power_limit(n_gpu)
         P_limit = P_safe
-        
+
         L_max = L_MAX
         L_safe = L_max
         NPAC = N_TEST
@@ -438,6 +461,7 @@ try:
                 X, y, P_target, P_limit, n_gpu
             )
             init_state = X[init_idx].copy()
+            init_state[CPU_FREQ_IDX] = CPU_FREQ_FIXED
 
             current_state = init_state.copy()
             current_GPU_freqs = current_state[GPU_FREQ_IDX].copy()
@@ -482,14 +506,9 @@ try:
                 full_state = current_state.copy()
                 full_state[GPU_FREQ_IDX] = current_GPU_freqs
                 full_state[CPU_FREQ_IDX] = current_CPU_freq
-                
+
                 full_state = random_state_update(
                     full_state, x_min, x_max
-                )
-
-                # Same PAC-domain clipping as online control.
-                full_state = np.clip(
-                    full_state, piece_lo, piece_hi
                 )
 
                 current_state = full_state

@@ -5,8 +5,12 @@ from pathlib import Path
 import pandas as pd
 
 PAC_DIR = Path("PAC_PERF")
+# pac_build_NGPU2_a0.05_b1e-08_k40000_e30_m1_maximum_residual_NPAC1377.json
 FNAME_RE = re.compile(
-    r"pac_build_gpu_(?P<ngpu>\d+)_a(?P<alpha>[\d.eE+-]+)_b(?P<beta>[\d.eE+-]+)_k(?P<k>\d+)_e(?P<eps>[\d.eE+-]+)_NPAC(?P<npac>\d+)bnb\.json$"
+    r"pac_build_NGPU(?P<ngpu>\d+)_a(?P<alpha>[\d.eE+-]+)_b(?P<beta>[\d.eE+-]+)"
+    r"_k(?P<k>\d+)_e(?P<eps>[\d.eE+-]+)_m(?P<m>\d+)_s?"
+    r"(?P<split>residual_range|maximum_residual)"
+    r"_NPAC(?P<npac>\d+)\.json$"
 )
 
 
@@ -16,11 +20,13 @@ def parse_meta_from_filename(p: Path):
         return {}
     g = m.groupdict()
     return {
-        "gpu": int(g["ngpu"]),
+        "NGPU": int(g["ngpu"]),
         "alpha": float(g["alpha"]),
         "beta": float(g["beta"]),
         "k_total": int(g["k"]),
         "eps_star": float(g["eps"]),
+        "m": int(g["m"]),
+        "split": g["split"],
         "NPAC": int(g["npac"]),
     }
 
@@ -73,9 +79,15 @@ def main():
         print(f"[ERROR] No JSON files found in {PAC_DIR.resolve()}")
         return
 
+    matched = 0
+    skipped = []
     for p in json_files:
+        if not FNAME_RE.search(p.name):
+            skipped.append(p.name)
+            continue
         row = load_one(p)
         rows.append(row)
+        matched += 1
 
         print(
             "==== PAC Build Data ===\n"
@@ -90,17 +102,25 @@ def main():
             f"File:                      {row['file']}\n"
         )
 
+    print(f"Total json files: {len(json_files)}")
+    print(f"Matched files: {matched}")
+    print(f"Skipped files: {len(skipped)}")
+    if skipped:
+        print("Skipped (unmatched pattern):")
+        for s in skipped[:10]:
+            print("  ", s)
+
     if not rows:
-        print("[ERROR] No model1 loaded. Check file paths.")
+        print("[ERROR] No model loaded. Check file paths / filename pattern.")
         return
 
     df = pd.DataFrame(rows)
 
-    sort_cols = [c for c in ["alpha", "beta", "eps_star"] if c in df.columns]
+    sort_cols = [c for c in ["NGPU", "alpha", "beta", "eps_star", "m", "split"] if c in df.columns]
     if sort_cols:
         df = df.sort_values(by=sort_cols)
 
-    out_csv = Path("pac_build_summary_bnb.csv")
+    out_csv = Path("pac_build_summary.csv")
     df.to_csv(out_csv, index=False)
     print(f"[saved] {out_csv.resolve()}")
 

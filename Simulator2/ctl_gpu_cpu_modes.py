@@ -26,7 +26,8 @@ powercontrol = []
 
 # Frequency limits
 min_GPU_freq, max_GPU_freq = 495, 1380
-min_CPU_freq, max_CPU_freq = 1100, 2100
+CPU_FREQ_FIXED = 2000.0
+min_CPU_freq = max_CPU_freq = CPU_FREQ_FIXED
 
 GPU_FREQ_IDX = []
 CPU_FREQ_IDX = None
@@ -65,6 +66,10 @@ def compute_power(delta_gpu_freqs, delta_cpu_freqs, current_power, gpu_coefs, cp
     )
 
 
+def cpu_is_fixed():
+    return min_CPU_freq >= max_CPU_freq
+
+
 def get_dynamic_bounds(GPU_freqs, CPU_freq):
     n_gpu = len(GPU_freqs)
 
@@ -75,52 +80,63 @@ def get_dynamic_bounds(GPU_freqs, CPU_freq):
         lower_bounds.append(min_GPU_freq - GPU_freqs[i])
         upper_bounds.append(max_GPU_freq - GPU_freqs[i])
 
-    lower_bounds.append(min_CPU_freq - CPU_freq)
-    upper_bounds.append(max_CPU_freq - CPU_freq)
+    # Fixed CPU: do not put a zero-width Δcpu bound into SLSQP.
+    if not cpu_is_fixed():
+        lower_bounds.append(min_CPU_freq - CPU_freq)
+        upper_bounds.append(max_CPU_freq - CPU_freq)
 
-    lower_bounds = np.array(lower_bounds * CONTROL_HORIZON)
-    upper_bounds = np.array(upper_bounds * CONTROL_HORIZON)
+    lower_bounds = np.array(lower_bounds * CONTROL_HORIZON, dtype=float)
+    upper_bounds = np.array(upper_bounds * CONTROL_HORIZON, dtype=float)
 
-    # Ensure bounds are valid
-    if np.any(lower_bounds >= upper_bounds):
+    if np.any(lower_bounds > upper_bounds):
         raise ValueError("Dynamic bounds are invalid. Check the logic.")
     return lower_bounds, upper_bounds
 
 
 def conservative_control(current_GPU_freqs, current_CPU_freqs):
-    cpu_ctl = min_CPU_freq - current_CPU_freqs
-    return np.array([min_GPU_freq - f for f in current_GPU_freqs] + [cpu_ctl])
+    cpu_ctl = 0.0 if cpu_is_fixed() else min_CPU_freq - current_CPU_freqs
+    return np.array(
+        [min_GPU_freq - f for f in current_GPU_freqs] + [cpu_ctl],
+        dtype=float,
+    )
 
 
 def mpc(
     current_power, target, current_GPU_freqs, current_CPU_freqs, gpu_coefs, cpu_coef
 ):
     n_gpu = len(current_GPU_freqs)
-    PROCESSOR_NUM = n_gpu + 1
+    # Decision vars: GPU deltas only when CPU frequency is locked.
+    n_ctrl = n_gpu if cpu_is_fixed() else n_gpu + 1
+    out_dim = n_gpu + 1
 
     def objective(x):
-        control_sequence = x.reshape((CONTROL_HORIZON, PROCESSOR_NUM))
-        predicted_GPU_freqs = np.array(current_GPU_freqs)
-        predicted_CPU_freqs = current_CPU_freqs
+        control_sequence = x.reshape((CONTROL_HORIZON, n_ctrl))
+        predicted_GPU_freqs = np.array(current_GPU_freqs, dtype=float)
+        predicted_CPU_freqs = float(current_CPU_freqs)
 
-        cost = 0
+        cost = 0.0
         for k in range(PREDICTION_HORIZON):
             if k < CONTROL_HORIZON:
-                delta = control_sequence[k]
+                delta_gpu = control_sequence[k, :n_gpu]
+                delta_cpu = (
+                    0.0 if cpu_is_fixed() else float(control_sequence[k, -1])
+                )
             else:
-                delta = np.zeros(PROCESSOR_NUM)  # No control after control horizon
+                delta_gpu = np.zeros(n_gpu)
+                delta_cpu = 0.0
 
-            # Update frequencies without snapping
             for i in range(n_gpu):
                 predicted_GPU_freqs[i] = np.clip(
-                    predicted_GPU_freqs[i] + delta[i], min_GPU_freq, max_GPU_freq
+                    predicted_GPU_freqs[i] + delta_gpu[i],
+                    min_GPU_freq,
+                    max_GPU_freq,
                 )
 
-            predicted_CPU_freqs = np.clip(
-                predicted_CPU_freqs + delta[-1], min_CPU_freq, max_CPU_freq
-            )
+            if not cpu_is_fixed():
+                predicted_CPU_freqs = np.clip(
+                    predicted_CPU_freqs + delta_cpu, min_CPU_freq, max_CPU_freq
+                )
 
-            # Compute power without snapping
             power = compute_power(
                 [predicted_GPU_freqs[i] - current_GPU_freqs[i] for i in range(n_gpu)],
                 predicted_CPU_freqs - current_CPU_freqs,
@@ -128,7 +144,6 @@ def mpc(
                 gpu_coefs,
                 cpu_coef,
             )
-            # Tracking error
             cost += Q * (power - target) ** 2
 
             # Control effort
@@ -408,39 +423,6 @@ def just_con(
         return u, "MPC"
 
 
-class RandomWalkKalman:
-    def __init__(self, Q=0.2, R=4.0, initial_power=None, initial_P=1.0):
-        self.Q = Q  # Process noise variance
-        self.R = R  # Measurement noise variance
-        self.initial_P = initial_P
-        self.P = initial_P  # Estimation covariance
-        self.x = initial_power  # Current estimate
-
-    def reset(self):
-        # Keep Q/R (per-GPU config); clear filter state between error/run
-        self.x = None
-        self.P = self.initial_P
-
-    def update(self, measured_power):
-        if self.x is None:
-            self.x = measured_power
-            return self.x
-
-        # Floor Q/R so P_pred+R never hits 0 when fitted noise is exactly 0
-        Q = max(self.Q, 1e-2)
-        R = max(self.R, 1e-2)
-
-        x_pred = self.x
-        P_pred = self.P + Q
-
-        K = P_pred / (P_pred + R)
-
-        self.x = x_pred + K * (measured_power - x_pred)
-        self.P = (1 - K) * P_pred
-
-        return self.x
-
-
 def to_python(obj):
     if isinstance(obj, dict):
         return {k: to_python(v) for k, v in obj.items()}
@@ -528,20 +510,13 @@ for n_gpu in GPU_LIST:
     apply_freq_limits(state_lo, state_hi)
     default_state = _ref.median().to_numpy(dtype=float).copy()
     default_state[GPU_FREQ_IDX] = min_GPU_freq
-    default_state[CPU_FREQ_IDX] = min_CPU_freq
+    default_state[CPU_FREQ_IDX] = CPU_FREQ_FIXED
 
     log_file = open(f"rt_{n_gpu}gpu_PAC_updated.log", "w")
     sys.stdout = log_file
     sys.stderr = log_file
 
     try:
-        if n_gpu == 1:
-            kf = RandomWalkKalman(Q=0, R=0)
-        elif n_gpu == 2:
-            kf = RandomWalkKalman(Q=0, R=0)
-        elif n_gpu == 4:
-            kf = RandomWalkKalman(Q=0, R=0)
-
         P_target = get_power_target(n_gpu)
         print(f"\n===== Running GPU = {n_gpu} =====")
 
@@ -554,19 +529,23 @@ for n_gpu in GPU_LIST:
             for pac_m in model_list:
                 if pac_m is not None:
                     constrained_pac(pac_m["path"])
+
                     if len(piece_lo) != len(fnn_x_cols):
                         raise ValueError(
                             f"[FATAL] PAC dimension mismatch: "
-                            f"expected {len(fnn_x_cols)}, got {len(piece_lo)}, file={pac_m['path']}"
+                            f"expected {len(fnn_x_cols)}, got {len(piece_lo)}, "
+                            f"file={pac_m['path']}"
                         )
-                    init_state = piece_lo.copy()
+
                     EPSILON_STAR = pac_m["eps"]
                     pac_tag = os.path.basename(pac_m["path"])
                 else:
-                    init_state = default_state.copy()
-                    x_min = state_lo.copy()
-                    x_max = state_hi.copy()
                     pac_tag = "none"
+
+                # Use the same initial state and state bounds for all methods.
+                init_state = default_state.copy()
+                x_min = state_lo.copy()
+                x_max = state_hi.copy()
 
                 for error_rate in [0.1, 0.5]:
                     for error in error_types:
@@ -575,6 +554,7 @@ for n_gpu in GPU_LIST:
                             f"\n===== Error Rate {error_rate}, Type: {error} ====="
                         )
                         for run in range(runs):
+                            np.random.seed(run)
                             error_mask = np.random.rand(steps) < error_rate
                             num_pac = num_mpc = num_unsafe = num_con = 0
                             powercontrol = []  # actual power series
@@ -587,8 +567,7 @@ for n_gpu in GPU_LIST:
                             current_CPU_freq = float(current_state[CPU_FREQ_IDX])
 
                             pred_period = 0
-                            if method == "kalman":
-                                kf.reset()  # same Q/R, fresh state for this error/run
+
 
                             # Simulate multiple control periods
                             for step in range(steps):
@@ -622,7 +601,7 @@ for n_gpu in GPU_LIST:
                                         gpu_coefs=gpu_coefs,
                                         cpu_coefs=cpu_coefs,
                                         target=P_target,
-                                        delta_period=10,
+                                        delta_period=100,
                                         EPSILON_STAR=EPSILON_STAR,
                                     )
 
@@ -659,18 +638,11 @@ for n_gpu in GPU_LIST:
                                     )
                                     if mode == "CON":
                                         num_con += 1
-                                    mode_series.append(mode)
-                                elif method == "kalman":
-                                    filtered_power = kf.update(power_meter)
-                                    u = mpc(
-                                        filtered_power,
-                                        P_target,
-                                        current_GPU_freqs,
-                                        current_CPU_freq,
-                                        gpu_coefs,
-                                        cpu_coefs,
-                                    )
+                                    elif mode == "MPC":
+                                        num_mpc += 1
 
+                                    mode_series.append(mode)
+                                
                                 elif method == "mov_avg":
                                     if step == 0:
                                         power_avg = power_meter
@@ -702,11 +674,6 @@ for n_gpu in GPU_LIST:
                                 current_state, noise = random_state_update(
                                     current_state, x_min, x_max
                                 )
-
-                                if method == "pac":
-                                    current_state = np.minimum(
-                                        np.maximum(current_state, piece_lo), piece_hi
-                                    )
 
                                 current_GPU_freqs = current_state[GPU_FREQ_IDX].copy()
                                 current_CPU_freq = float(
@@ -783,13 +750,13 @@ for n_gpu in GPU_LIST:
                         all_results.append(payload)
 
                         if pac_m is not None:
+                            model_stem = os.path.splitext(pac_tag)[0]
                             out_name = (
                                 f"control_results_NGPU{n_gpu}"
                                 f"_method-{method}"
                                 f"_err-{error}"
                                 f"_rate-{error_rate}"
-                                f"_m{m_val}"
-                                f"_s{split_val}.json"
+                                f"_{model_stem}.json"
                             )
                         else:
                             out_name = (
