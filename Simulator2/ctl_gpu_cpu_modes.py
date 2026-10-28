@@ -228,7 +228,7 @@ def select_piece(xs, pieces):
     #       tol is the tolerance parameter because sometimes the state will be out of the boundary we learned,
     #       and it can be adjusted to a greater number if no piece matches (like 0.1)
     xs = np.asarray(xs, dtype=float).ravel()
-    tol = 0.1 * (x_max - x_min)
+    tol = 0.01 * (x_max - x_min)
     tol_vec = np.asarray(tol, dtype=float).ravel()
 
     d = len(xs)
@@ -496,7 +496,7 @@ def parse_pac_filename(path):
 # Zhuo: steps represents how many steps the system would run for each control period
 #       error is the percentage of the possibility that the power meter would have wrong readings
 steps = 500
-runs = 50
+runs = 100
 ControlMethod = ["pac", "mpc", "con", "kalman", "mov_avg"]
 
 np.random.seed(0)  # this is just the random seed set for the error above

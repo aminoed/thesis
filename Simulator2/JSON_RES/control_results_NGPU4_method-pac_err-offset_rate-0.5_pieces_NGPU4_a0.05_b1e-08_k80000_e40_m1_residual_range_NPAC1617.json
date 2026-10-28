@@ -1,0 +1,1331 @@
+{
+  "gpu_num": 4,
+  "method": "pac",
+  "pac_model": "pieces_NGPU4_a0.05_b1e-08_k80000_e40_m1_residual_range_NPAC1617.json",
+  "m": 1,
+  "split": "residual_range",
+  "error_rate": 0.5,
+  "error_type": "offset",
+  "steps": 500,
+  "n_runs": 100,
+  "EPSILON_STAR": 40.0,
+  "runs": [
+    {
+      "run": 0,
+      "power_mean": 1192.6508255615233,
+      "power_std": 22.893528979904193,
+      "max_overshoot": 16.0440673828125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 201,
+        "MPC": 299,
+        "CON": 0
+      }
+    },
+    {
+      "run": 1,
+      "power_mean": 1199.647068725586,
+      "power_std": 22.340449228116576,
+      "max_overshoot": 24.337158203125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 190,
+        "MPC": 310,
+        "CON": 0
+      }
+    },
+    {
+      "run": 2,
+      "power_mean": 1200.5226850585937,
+      "power_std": 22.539567026420194,
+      "max_overshoot": 32.6248779296875,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 194,
+        "MPC": 306,
+        "CON": 0
+      }
+    },
+    {
+      "run": 3,
+      "power_mean": 1190.7405382080078,
+      "power_std": 22.458081019574344,
+      "max_overshoot": 22.30078125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 210,
+        "MPC": 290,
+        "CON": 0
+      }
+    },
+    {
+      "run": 4,
+      "power_mean": 1200.783734741211,
+      "power_std": 23.027623098354837,
+      "max_overshoot": 24.2694091796875,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 187,
+        "MPC": 313,
+        "CON": 0
+      }
+    },
+    {
+      "run": 5,
+      "power_mean": 1201.5676141357421,
+      "power_std": 22.927264630543696,
+      "max_overshoot": 29.7542724609375,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 205,
+        "MPC": 295,
+        "CON": 0
+      }
+    },
+    {
+      "run": 6,
+      "power_mean": 1205.0938240966798,
+      "power_std": 24.719529099869273,
+      "max_overshoot": 61.803955078125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 193,
+        "MPC": 307,
+        "CON": 0
+      }
+    },
+    {
+      "run": 7,
+      "power_mean": 1194.1688209228516,
+      "power_std": 21.972464008926735,
+      "max_overshoot": 10.0279541015625,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 198,
+        "MPC": 302,
+        "CON": 0
+      }
+    },
+    {
+      "run": 8,
+      "power_mean": 1197.4553610839844,
+      "power_std": 22.628750545214565,
+      "max_overshoot": 19.2940673828125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 217,
+        "MPC": 283,
+        "CON": 0
+      }
+    },
+    {
+      "run": 9,
+      "power_mean": 1196.853962890625,
+      "power_std": 22.030823508787613,
+      "max_overshoot": 13.82861328125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 194,
+        "MPC": 306,
+        "CON": 0
+      }
+    },
+    {
+      "run": 10,
+      "power_mean": 1196.2897261962892,
+      "power_std": 22.601752965499575,
+      "max_overshoot": 27.6785888671875,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 193,
+        "MPC": 307,
+        "CON": 0
+      }
+    },
+    {
+      "run": 11,
+      "power_mean": 1194.8667662353516,
+      "power_std": 22.608833889798323,
+      "max_overshoot": 25.897705078125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 203,
+        "MPC": 297,
+        "CON": 0
+      }
+    },
+    {
+      "run": 12,
+      "power_mean": 1200.6636087646484,
+      "power_std": 22.43439952177166,
+      "max_overshoot": 34.393310546875,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 206,
+        "MPC": 294,
+        "CON": 0
+      }
+    },
+    {
+      "run": 13,
+      "power_mean": 1202.209425048828,
+      "power_std": 23.48691694754506,
+      "max_overshoot": 30.72998046875,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 212,
+        "MPC": 288,
+        "CON": 0
+      }
+    },
+    {
+      "run": 14,
+      "power_mean": 1201.8067763671875,
+      "power_std": 23.01675326335028,
+      "max_overshoot": 29.7257080078125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 213,
+        "MPC": 287,
+        "CON": 0
+      }
+    },
+    {
+      "run": 15,
+      "power_mean": 1194.1844780273439,
+      "power_std": 22.718440569248937,
+      "max_overshoot": 29.139892578125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 203,
+        "MPC": 297,
+        "CON": 0
+      }
+    },
+    {
+      "run": 16,
+      "power_mean": 1197.76336328125,
+      "power_std": 22.257271664991244,
+      "max_overshoot": 24.7806396484375,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 204,
+        "MPC": 296,
+        "CON": 0
+      }
+    },
+    {
+      "run": 17,
+      "power_mean": 1198.6986705322265,
+      "power_std": 22.377092632248523,
+      "max_overshoot": 33.31201171875,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 196,
+        "MPC": 304,
+        "CON": 0
+      }
+    },
+    {
+      "run": 18,
+      "power_mean": 1195.1466014404298,
+      "power_std": 22.496279238594013,
+      "max_overshoot": 18.47705078125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 204,
+        "MPC": 296,
+        "CON": 0
+      }
+    },
+    {
+      "run": 19,
+      "power_mean": 1196.3586727294921,
+      "power_std": 22.215111448273646,
+      "max_overshoot": 25.875,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 211,
+        "MPC": 289,
+        "CON": 0
+      }
+    },
+    {
+      "run": 20,
+      "power_mean": 1200.6189600830078,
+      "power_std": 22.4400092746404,
+      "max_overshoot": 20.6607666015625,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 201,
+        "MPC": 299,
+        "CON": 0
+      }
+    },
+    {
+      "run": 21,
+      "power_mean": 1201.848519165039,
+      "power_std": 22.752422644745483,
+      "max_overshoot": 32.9652099609375,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 187,
+        "MPC": 313,
+        "CON": 0
+      }
+    },
+    {
+      "run": 22,
+      "power_mean": 1195.2949871826172,
+      "power_std": 21.708584642318886,
+      "max_overshoot": 16.24609375,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 194,
+        "MPC": 306,
+        "CON": 0
+      }
+    },
+    {
+      "run": 23,
+      "power_mean": 1194.4367166748048,
+      "power_std": 22.591430358690687,
+      "max_overshoot": 23.24951171875,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 227,
+        "MPC": 273,
+        "CON": 0
+      }
+    },
+    {
+      "run": 24,
+      "power_mean": 1199.5322603759766,
+      "power_std": 22.472069090886997,
+      "max_overshoot": 25.5281982421875,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 227,
+        "MPC": 273,
+        "CON": 0
+      }
+    },
+    {
+      "run": 25,
+      "power_mean": 1202.6255565185547,
+      "power_std": 23.11549302227004,
+      "max_overshoot": 34.07958984375,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 210,
+        "MPC": 290,
+        "CON": 0
+      }
+    },
+    {
+      "run": 26,
+      "power_mean": 1204.857096923828,
+      "power_std": 23.95692861187877,
+      "max_overshoot": 44.0357666015625,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 207,
+        "MPC": 293,
+        "CON": 0
+      }
+    },
+    {
+      "run": 27,
+      "power_mean": 1195.9011423339844,
+      "power_std": 22.233560957548182,
+      "max_overshoot": 21.434814453125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 185,
+        "MPC": 315,
+        "CON": 0
+      }
+    },
+    {
+      "run": 28,
+      "power_mean": 1202.9809776611328,
+      "power_std": 23.654167331666187,
+      "max_overshoot": 30.25732421875,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 197,
+        "MPC": 303,
+        "CON": 0
+      }
+    },
+    {
+      "run": 29,
+      "power_mean": 1196.5137967529297,
+      "power_std": 22.572235396188432,
+      "max_overshoot": 22.519775390625,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 205,
+        "MPC": 295,
+        "CON": 0
+      }
+    },
+    {
+      "run": 30,
+      "power_mean": 1198.5445059814454,
+      "power_std": 23.06341523899369,
+      "max_overshoot": 32.99560546875,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 193,
+        "MPC": 307,
+        "CON": 0
+      }
+    },
+    {
+      "run": 31,
+      "power_mean": 1193.8303394775392,
+      "power_std": 22.378595510063175,
+      "max_overshoot": 14.328369140625,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 214,
+        "MPC": 286,
+        "CON": 0
+      }
+    },
+    {
+      "run": 32,
+      "power_mean": 1203.8230301513672,
+      "power_std": 23.742839605245393,
+      "max_overshoot": 31.9658203125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 212,
+        "MPC": 288,
+        "CON": 0
+      }
+    },
+    {
+      "run": 33,
+      "power_mean": 1198.4487723388672,
+      "power_std": 22.181297475569345,
+      "max_overshoot": 26.0714111328125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 195,
+        "MPC": 305,
+        "CON": 0
+      }
+    },
+    {
+      "run": 34,
+      "power_mean": 1199.1172547607423,
+      "power_std": 22.180221539304085,
+      "max_overshoot": 30.9554443359375,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 212,
+        "MPC": 288,
+        "CON": 0
+      }
+    },
+    {
+      "run": 35,
+      "power_mean": 1203.0667821044922,
+      "power_std": 22.886725430366106,
+      "max_overshoot": 26.77734375,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 199,
+        "MPC": 301,
+        "CON": 0
+      }
+    },
+    {
+      "run": 36,
+      "power_mean": 1198.6375447998048,
+      "power_std": 22.6811046762547,
+      "max_overshoot": 29.5179443359375,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 215,
+        "MPC": 285,
+        "CON": 0
+      }
+    },
+    {
+      "run": 37,
+      "power_mean": 1199.220564819336,
+      "power_std": 22.64799662009615,
+      "max_overshoot": 22.873046875,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 197,
+        "MPC": 303,
+        "CON": 0
+      }
+    },
+    {
+      "run": 38,
+      "power_mean": 1200.7660709228517,
+      "power_std": 23.145483331216635,
+      "max_overshoot": 29.0001220703125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 193,
+        "MPC": 307,
+        "CON": 0
+      }
+    },
+    {
+      "run": 39,
+      "power_mean": 1204.2691885986328,
+      "power_std": 23.510791844314394,
+      "max_overshoot": 40.9822998046875,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 199,
+        "MPC": 301,
+        "CON": 0
+      }
+    },
+    {
+      "run": 40,
+      "power_mean": 1202.7027427978517,
+      "power_std": 23.79101946952536,
+      "max_overshoot": 42.024658203125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 202,
+        "MPC": 298,
+        "CON": 0
+      }
+    },
+    {
+      "run": 41,
+      "power_mean": 1195.2075975341797,
+      "power_std": 22.0348914725652,
+      "max_overshoot": 21.20751953125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 212,
+        "MPC": 288,
+        "CON": 0
+      }
+    },
+    {
+      "run": 42,
+      "power_mean": 1198.9388140869141,
+      "power_std": 22.935945491971705,
+      "max_overshoot": 26.855712890625,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 198,
+        "MPC": 302,
+        "CON": 0
+      }
+    },
+    {
+      "run": 43,
+      "power_mean": 1195.5436651611328,
+      "power_std": 22.455205987524785,
+      "max_overshoot": 18.64794921875,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 186,
+        "MPC": 314,
+        "CON": 0
+      }
+    },
+    {
+      "run": 44,
+      "power_mean": 1199.6593758544923,
+      "power_std": 22.849799883477328,
+      "max_overshoot": 20.362548828125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 191,
+        "MPC": 309,
+        "CON": 0
+      }
+    },
+    {
+      "run": 45,
+      "power_mean": 1203.093835571289,
+      "power_std": 24.301938914030195,
+      "max_overshoot": 47.6865234375,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 198,
+        "MPC": 302,
+        "CON": 0
+      }
+    },
+    {
+      "run": 46,
+      "power_mean": 1198.1091185302735,
+      "power_std": 22.5194642058574,
+      "max_overshoot": 19.554443359375,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 216,
+        "MPC": 284,
+        "CON": 0
+      }
+    },
+    {
+      "run": 47,
+      "power_mean": 1198.8316876220704,
+      "power_std": 22.4550575194035,
+      "max_overshoot": 24.757568359375,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 182,
+        "MPC": 318,
+        "CON": 0
+      }
+    },
+    {
+      "run": 48,
+      "power_mean": 1199.9407188720704,
+      "power_std": 22.545039498601515,
+      "max_overshoot": 29.993896484375,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 209,
+        "MPC": 291,
+        "CON": 0
+      }
+    },
+    {
+      "run": 49,
+      "power_mean": 1187.2683635253907,
+      "power_std": 22.557805132026644,
+      "max_overshoot": 9.2298583984375,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 201,
+        "MPC": 299,
+        "CON": 0
+      }
+    },
+    {
+      "run": 50,
+      "power_mean": 1205.8258669433594,
+      "power_std": 24.241705475913665,
+      "max_overshoot": 36.90576171875,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 213,
+        "MPC": 287,
+        "CON": 0
+      }
+    },
+    {
+      "run": 51,
+      "power_mean": 1200.5448475341798,
+      "power_std": 23.21447955174257,
+      "max_overshoot": 26.223388671875,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 207,
+        "MPC": 293,
+        "CON": 0
+      }
+    },
+    {
+      "run": 52,
+      "power_mean": 1197.6976048583983,
+      "power_std": 22.4884350687755,
+      "max_overshoot": 19.5977783203125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 176,
+        "MPC": 324,
+        "CON": 0
+      }
+    },
+    {
+      "run": 53,
+      "power_mean": 1196.16806640625,
+      "power_std": 22.765234563335905,
+      "max_overshoot": 18.4085693359375,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 199,
+        "MPC": 301,
+        "CON": 0
+      }
+    },
+    {
+      "run": 54,
+      "power_mean": 1197.1124921875,
+      "power_std": 22.13453748306109,
+      "max_overshoot": 23.3128662109375,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 219,
+        "MPC": 281,
+        "CON": 0
+      }
+    },
+    {
+      "run": 55,
+      "power_mean": 1200.434674560547,
+      "power_std": 22.320168567088142,
+      "max_overshoot": 29.7774658203125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 201,
+        "MPC": 299,
+        "CON": 0
+      }
+    },
+    {
+      "run": 56,
+      "power_mean": 1197.8677701416016,
+      "power_std": 22.5679056745842,
+      "max_overshoot": 16.620849609375,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 221,
+        "MPC": 279,
+        "CON": 0
+      }
+    },
+    {
+      "run": 57,
+      "power_mean": 1194.6945640869142,
+      "power_std": 23.220789660149634,
+      "max_overshoot": 23.6614990234375,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 207,
+        "MPC": 293,
+        "CON": 0
+      }
+    },
+    {
+      "run": 58,
+      "power_mean": 1204.3887589111328,
+      "power_std": 23.55517752569449,
+      "max_overshoot": 35.9132080078125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 210,
+        "MPC": 290,
+        "CON": 0
+      }
+    },
+    {
+      "run": 59,
+      "power_mean": 1201.4737044677734,
+      "power_std": 23.239489995957836,
+      "max_overshoot": 39.0400390625,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 202,
+        "MPC": 298,
+        "CON": 0
+      }
+    },
+    {
+      "run": 60,
+      "power_mean": 1195.3817218017577,
+      "power_std": 22.457517075086212,
+      "max_overshoot": 13.3017578125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 206,
+        "MPC": 294,
+        "CON": 0
+      }
+    },
+    {
+      "run": 61,
+      "power_mean": 1200.548594604492,
+      "power_std": 23.356090467437106,
+      "max_overshoot": 44.6512451171875,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 212,
+        "MPC": 288,
+        "CON": 0
+      }
+    },
+    {
+      "run": 62,
+      "power_mean": 1201.3826719970702,
+      "power_std": 22.932645748542743,
+      "max_overshoot": 29.989990234375,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 189,
+        "MPC": 311,
+        "CON": 0
+      }
+    },
+    {
+      "run": 63,
+      "power_mean": 1198.3905529785156,
+      "power_std": 23.244461750516617,
+      "max_overshoot": 31.7796630859375,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 189,
+        "MPC": 311,
+        "CON": 0
+      }
+    },
+    {
+      "run": 64,
+      "power_mean": 1199.164420288086,
+      "power_std": 22.4768779793961,
+      "max_overshoot": 27.66650390625,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 214,
+        "MPC": 286,
+        "CON": 0
+      }
+    },
+    {
+      "run": 65,
+      "power_mean": 1198.2493150634766,
+      "power_std": 22.283454572386276,
+      "max_overshoot": 28.8045654296875,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 214,
+        "MPC": 286,
+        "CON": 0
+      }
+    },
+    {
+      "run": 66,
+      "power_mean": 1195.6988627929688,
+      "power_std": 22.900698077430757,
+      "max_overshoot": 20.239013671875,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 196,
+        "MPC": 304,
+        "CON": 0
+      }
+    },
+    {
+      "run": 67,
+      "power_mean": 1193.385427368164,
+      "power_std": 23.483037372425688,
+      "max_overshoot": 21.06494140625,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 209,
+        "MPC": 291,
+        "CON": 0
+      }
+    },
+    {
+      "run": 68,
+      "power_mean": 1202.7519660644532,
+      "power_std": 22.916975046939825,
+      "max_overshoot": 30.9658203125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 203,
+        "MPC": 297,
+        "CON": 0
+      }
+    },
+    {
+      "run": 69,
+      "power_mean": 1200.859189453125,
+      "power_std": 22.925544915692875,
+      "max_overshoot": 29.24755859375,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 213,
+        "MPC": 287,
+        "CON": 0
+      }
+    },
+    {
+      "run": 70,
+      "power_mean": 1201.5256706542968,
+      "power_std": 22.788124841846752,
+      "max_overshoot": 14.002197265625,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 211,
+        "MPC": 289,
+        "CON": 0
+      }
+    },
+    {
+      "run": 71,
+      "power_mean": 1197.5715754394532,
+      "power_std": 22.02853139858331,
+      "max_overshoot": 22.2259521484375,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 182,
+        "MPC": 318,
+        "CON": 0
+      }
+    },
+    {
+      "run": 72,
+      "power_mean": 1204.5685560302734,
+      "power_std": 23.185121231530566,
+      "max_overshoot": 46.8438720703125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 220,
+        "MPC": 280,
+        "CON": 0
+      }
+    },
+    {
+      "run": 73,
+      "power_mean": 1199.583185180664,
+      "power_std": 22.84908367826512,
+      "max_overshoot": 32.4462890625,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 216,
+        "MPC": 284,
+        "CON": 0
+      }
+    },
+    {
+      "run": 74,
+      "power_mean": 1199.800624267578,
+      "power_std": 22.7990088846412,
+      "max_overshoot": 38.214599609375,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 187,
+        "MPC": 313,
+        "CON": 0
+      }
+    },
+    {
+      "run": 75,
+      "power_mean": 1199.0875908203125,
+      "power_std": 22.567690075396328,
+      "max_overshoot": 24.44873046875,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 202,
+        "MPC": 298,
+        "CON": 0
+      }
+    },
+    {
+      "run": 76,
+      "power_mean": 1193.322040161133,
+      "power_std": 21.541387197271117,
+      "max_overshoot": 5.559814453125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 210,
+        "MPC": 290,
+        "CON": 0
+      }
+    },
+    {
+      "run": 77,
+      "power_mean": 1195.650190307617,
+      "power_std": 22.475909965506048,
+      "max_overshoot": 20.87744140625,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 211,
+        "MPC": 289,
+        "CON": 0
+      }
+    },
+    {
+      "run": 78,
+      "power_mean": 1197.8857279052734,
+      "power_std": 22.12026604200121,
+      "max_overshoot": 28.947265625,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 202,
+        "MPC": 298,
+        "CON": 0
+      }
+    },
+    {
+      "run": 79,
+      "power_mean": 1200.0962635498047,
+      "power_std": 23.024085049482327,
+      "max_overshoot": 33.090087890625,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 208,
+        "MPC": 292,
+        "CON": 0
+      }
+    },
+    {
+      "run": 80,
+      "power_mean": 1203.6346434326172,
+      "power_std": 23.54529520803426,
+      "max_overshoot": 36.784423828125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 177,
+        "MPC": 323,
+        "CON": 0
+      }
+    },
+    {
+      "run": 81,
+      "power_mean": 1203.4394720458984,
+      "power_std": 23.37109425384368,
+      "max_overshoot": 32.492919921875,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 204,
+        "MPC": 296,
+        "CON": 0
+      }
+    },
+    {
+      "run": 82,
+      "power_mean": 1201.3957908935547,
+      "power_std": 22.967852729156952,
+      "max_overshoot": 32.3033447265625,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 218,
+        "MPC": 282,
+        "CON": 0
+      }
+    },
+    {
+      "run": 83,
+      "power_mean": 1198.2183724365234,
+      "power_std": 21.92702349374232,
+      "max_overshoot": 15.642822265625,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 189,
+        "MPC": 311,
+        "CON": 0
+      }
+    },
+    {
+      "run": 84,
+      "power_mean": 1195.9166929931641,
+      "power_std": 22.482677709735963,
+      "max_overshoot": 20.260498046875,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 212,
+        "MPC": 288,
+        "CON": 0
+      }
+    },
+    {
+      "run": 85,
+      "power_mean": 1196.141021850586,
+      "power_std": 22.863742030171615,
+      "max_overshoot": 16.0635986328125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 212,
+        "MPC": 288,
+        "CON": 0
+      }
+    },
+    {
+      "run": 86,
+      "power_mean": 1201.5121580810546,
+      "power_std": 23.220507513204236,
+      "max_overshoot": 43.3798828125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 209,
+        "MPC": 291,
+        "CON": 0
+      }
+    },
+    {
+      "run": 87,
+      "power_mean": 1196.9463118896485,
+      "power_std": 22.413646546518578,
+      "max_overshoot": 20.95361328125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 201,
+        "MPC": 299,
+        "CON": 0
+      }
+    },
+    {
+      "run": 88,
+      "power_mean": 1201.241635498047,
+      "power_std": 23.010865457323685,
+      "max_overshoot": 35.3226318359375,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 202,
+        "MPC": 298,
+        "CON": 0
+      }
+    },
+    {
+      "run": 89,
+      "power_mean": 1197.8681138916015,
+      "power_std": 22.215202724485543,
+      "max_overshoot": 19.61962890625,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 199,
+        "MPC": 301,
+        "CON": 0
+      }
+    },
+    {
+      "run": 90,
+      "power_mean": 1196.1805642089844,
+      "power_std": 22.416980566989814,
+      "max_overshoot": 29.6451416015625,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 190,
+        "MPC": 310,
+        "CON": 0
+      }
+    },
+    {
+      "run": 91,
+      "power_mean": 1196.596552368164,
+      "power_std": 22.260765696905263,
+      "max_overshoot": 20.663818359375,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 196,
+        "MPC": 304,
+        "CON": 0
+      }
+    },
+    {
+      "run": 92,
+      "power_mean": 1199.8219896240234,
+      "power_std": 22.813085107402152,
+      "max_overshoot": 27.53173828125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 187,
+        "MPC": 313,
+        "CON": 0
+      }
+    },
+    {
+      "run": 93,
+      "power_mean": 1197.9648981933594,
+      "power_std": 22.900013503693483,
+      "max_overshoot": 19.4658203125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 199,
+        "MPC": 301,
+        "CON": 0
+      }
+    },
+    {
+      "run": 94,
+      "power_mean": 1203.5436389160157,
+      "power_std": 23.597568396078415,
+      "max_overshoot": 42.694091796875,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 203,
+        "MPC": 297,
+        "CON": 0
+      }
+    },
+    {
+      "run": 95,
+      "power_mean": 1197.9313513183595,
+      "power_std": 22.634620687325377,
+      "max_overshoot": 19.6484375,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 203,
+        "MPC": 297,
+        "CON": 0
+      }
+    },
+    {
+      "run": 96,
+      "power_mean": 1199.4147296142578,
+      "power_std": 22.549385191993107,
+      "max_overshoot": 29.376953125,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 199,
+        "MPC": 301,
+        "CON": 0
+      }
+    },
+    {
+      "run": 97,
+      "power_mean": 1202.9296790771484,
+      "power_std": 23.124216580129925,
+      "max_overshoot": 28.3193359375,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 193,
+        "MPC": 307,
+        "CON": 0
+      }
+    },
+    {
+      "run": 98,
+      "power_mean": 1199.1221614990234,
+      "power_std": 22.820668619556052,
+      "max_overshoot": 23.58740234375,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 220,
+        "MPC": 280,
+        "CON": 0
+      }
+    },
+    {
+      "run": 99,
+      "power_mean": 1197.2976639404296,
+      "power_std": 23.199516383161047,
+      "max_overshoot": 31.062255859375,
+      "num_unsafe": 0,
+      "r_unsafe": 0.0,
+      "mode_counts": {
+        "PAC": 188,
+        "MPC": 312,
+        "CON": 0
+      }
+    }
+  ],
+  "overall": {
+    "power_mean": 1198.893324498291,
+    "power_std": 22.785516368004078,
+    "max_overshoot": 27.09707275390625,
+    "num_unsafe": 0,
+    "r_unsafe": 0.0,
+    "mode_counts": {
+      "PAC": 20248,
+      "MPC": 29752,
+      "CON": 0
+    },
+    "mode_rates": {
+      "PAC": 0.40496,
+      "MPC": 0.59504,
+      "CON": 0.0
+    }
+  }
+}

@@ -434,7 +434,7 @@ def parse_pac_filename(path):
 # Zhuo: steps represents how many steps the system would run for each control period
 #       error is the percentage of the possibility that the power meter would have wrong readings
 steps = 500
-runs = 50
+runs = 100
 ControlMethod = ["pac", "mpc", "con", "mov_avg"]
 
 np.random.seed(0)  # this is just the random seed set for the error above

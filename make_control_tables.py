@@ -1,14 +1,3 @@
-"""Build the two control-result tables from JSON_RES files.
-
-Usage:
-    python make_control_tables.py JSON_DIR OUT_PREFIX
-
-Example:
-    python make_control_tables.py Simulator1/JSON_RES Simulator1/sim_i
-
-Writes OUT_PREFIX_control_table.csv and OUT_PREFIX_modes_table.csv.
-"""
-
 import csv
 import glob
 import json
@@ -22,6 +11,7 @@ POWER_METHODS = [
     ("pac", "Our Method"),
     ("mpc", "Original Controller"),
     ("mov_avg", "MA"),
+    # ("kalman", "KF"),
     ("con", "Immediate Conservative"),
 ]
 NGPUS = [1, 2, 4]
@@ -41,10 +31,6 @@ def power_set(n_gpu):
 
 
 def use_this_model(rest):
-    """mpc / mov_avg have no model suffix. pac / con keep m=1 residual_range.
-
-    When the filename also carries alpha, keep alpha = 0.05 only.
-    """
     if rest == "":
         return True
     if "_m1_" not in rest or "residual_range" not in rest:
@@ -55,7 +41,6 @@ def use_this_model(rest):
 
 
 def collect(json_dir):
-    """Map (ngpu, method, error, rate) to one JSON path. Newest file wins."""
     chosen = {}
     for path in glob.glob(os.path.join(json_dir, "control_results_NGPU*.json")):
         match = NAME.match(os.path.basename(path))
@@ -124,7 +109,6 @@ def write_control_table(chosen, path):
 
 
 def write_modes_table(chosen, path):
-    """Columns per GPU: prediction, meter, Our conservative, Immediate Conservative."""
     with open(path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(
