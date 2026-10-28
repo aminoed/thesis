@@ -39,8 +39,8 @@ STATE_NOISE = 0.00
 
 SAFE_MARGIN_PER_GPU = 25
 
-INIT_BELOW_TARGET_LO = 100
-INIT_BELOW_TARGET_HI = 50
+INIT_BELOW_TARGET_LO = 50
+INIT_BELOW_TARGET_HI = 0
 
 NO_MATCH_REPORT_LIMIT = 3
 no_match_reports = 0
@@ -204,7 +204,7 @@ def select_piece(xs, pieces, verbose=True):
     xs = np.asarray(xs, dtype=float).ravel()
 
     # Same tolerance as Simulator II online control.
-    tol = 0.1 * (x_max - x_min)
+    tol = 0.01 * (x_max - x_min)
 
     models = []
 
