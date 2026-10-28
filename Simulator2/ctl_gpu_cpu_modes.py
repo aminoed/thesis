@@ -154,7 +154,7 @@ def mpc(
                 )
         return cost
 
-    x0 = np.zeros(CONTROL_HORIZON * PROCESSOR_NUM)
+    x0 = np.zeros(CONTROL_HORIZON * n_ctrl)
 
     # Get dynamic bounds
     lower_bounds, upper_bounds = get_dynamic_bounds(
@@ -167,11 +167,14 @@ def mpc(
     )
 
     if result.success and result.x is not None and len(result.x) > 0:
-        # Extract the first control action
-        return result.x[:PROCESSOR_NUM]
+        delta = np.asarray(result.x[:n_ctrl], dtype=float)
     else:
         print("Optimization failed:", result.message)
-        return np.zeros(PROCESSOR_NUM)
+        delta = np.zeros(n_ctrl)
+    # Callers apply u[:-1] to GPUs and u[-1] to the CPU.
+    if cpu_is_fixed():
+        return np.append(delta, 0.0)
+    return delta
 
 
 def load_model(model_path):
@@ -289,13 +292,16 @@ def predict(xs):
 
 
 def random_state_update(state, x_min, x_max):
-    # zhuo: we aid a small noise to the state and shows that the system will remain stable
-    #       even if we add noises to the ML tasks, if it's 0,
-    #       then there shouldn't have any fluctuations for the curve once it converges to the power limits
+    # Noise is only for workload (utilization). Fan speeds take two discrete
+    # values in the training set; walking them makes the FNN invent a large
+    # power change. Frequencies are the control command and stay as set.
     state = state.copy()
-    noise = 0.05  # this is for debug
+    noise_level = 0.05
     ranges = x_max - x_min
-    noise = np.random.uniform(-noise, noise, size=state.shape)
+    noise = np.random.uniform(-noise_level, noise_level, size=state.shape)
+    for i, name in enumerate(fnn_x_cols):
+        if "util" not in name:
+            noise[i] = 0.0
     state = state + noise * ranges
 
     state = np.clip(state, x_min, x_max)
