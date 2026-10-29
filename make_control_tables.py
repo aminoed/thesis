@@ -14,7 +14,7 @@ POWER_METHODS = [
     # ("kalman", "KF"),
     ("con", "Immediate Conservative"),
 ]
-NGPUS = [1, 2, 4]
+NGPUS = [2, 4]
 RATES = [0.1, 0.5]
 
 NAME = re.compile(

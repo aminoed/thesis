@@ -164,7 +164,8 @@ def predict(xs, pieces):
 #         filename, index=False
 #     )
 models = [load_model(path) for path in MODEL_PATHS]
-
+for i in range(len(models)):
+    print(f"len(models[{i}]): {len(models[i])}") 
 initial_state = np.zeros(12)
 initial_state[:6] = rng.uniform(-0.4, 0.4, size=6)
 initial_state[6:] = rng.uniform(-0.02, 0.02, size=6)
@@ -237,7 +238,7 @@ plot_style = {
 }
 
 state_ylabels = [
-    rf"$s_{{{j+1}}}$ ({unit})" for j, unit in enumerate(state_units)
+    rf"$x_{{{j+1}}}$ ({unit})" for j, unit in enumerate(state_units)
 ]
 state_filenames = [f"x{j+1}" for j in range(12)]
 

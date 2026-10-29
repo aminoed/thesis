@@ -120,7 +120,8 @@ def predict(xs, pieces):
 # pd.DataFrame(np.hstack((X, Y[:,1].reshape(-1,1))), columns=['x0', 'x1', 'y1']).to_csv("bounce_ball_Y_200000.csv", index=False)
 
 models = [load_model(path) for path in MODEL_PATHS]
-
+print(f"len(models[0]): {len(models[0])}") 
+print(f"len(models[1]): {len(models[1])}") 
 n_steps = round(t_end / dt)
 x0 = np.asarray(x_init, dtype=float).copy()
 x1 = x0.copy()
@@ -228,7 +229,7 @@ plot_style = {
     "pdf.fonttype": 42,
 }
 
-state_ylabels = [rf"$s_{{{j+1}}}$ ({unit})" for j, unit in enumerate(state_units)]
+state_ylabels = [rf"$x_{{{j+1}}}$ ({unit})" for j, unit in enumerate(state_units)]
 state_filenames = [f"s{j+1}" for j in range(2)]
 
 with plt.rc_context(plot_style):

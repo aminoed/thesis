@@ -1,151 +1,101 @@
 error_rate,row,error_type,ngpu,P_set,method,P_bar_W,unsafe_pct,steps,n_runs
-0.1,1,offset,1,750,Our Method,747.7,0.00,500,100
-0.1,1,offset,1,750,Original Controller,749.7,2.37,500,100
-0.1,1,offset,1,750,MA,749.8,2.08,500,100
-0.1,1,offset,1,750,KF,749.8,0.54,500,100
-0.1,1,offset,1,750,Immediate Conservative,740.5,0.00,500,100
-0.1,1,offset,2,900,Our Method,855.8,0.00,500,100
-0.1,1,offset,2,900,Original Controller,855.2,0.00,500,100
-0.1,1,offset,2,900,MA,855.6,0.00,500,100
-0.1,1,offset,2,900,KF,855.4,0.00,500,100
-0.1,1,offset,2,900,Immediate Conservative,823.3,0.00,500,100
+0.1,1,offset,2,900,Our Method,898.8,0.00,500,100
+0.1,1,offset,2,900,Original Controller,898.2,2.47,500,100
+0.1,1,offset,2,900,MA,898.6,3.52,500,100
+0.1,1,offset,2,900,KF,898.4,0.62,500,100
+0.1,1,offset,2,900,Immediate Conservative,866.3,0.00,500,100
 0.1,1,offset,4,1200,Our Method,1197.7,0.00,500,100
-0.1,1,offset,4,1200,Original Controller,1193.6,0.00,500,100
-0.1,1,offset,4,1200,MA,1194.0,0.00,500,100
-0.1,1,offset,4,1200,KF,1194.9,0.00,500,100
+0.1,1,offset,4,1200,Original Controller,1196.8,2.61,500,100
+0.1,1,offset,4,1200,MA,1197.2,3.85,500,100
+0.1,1,offset,4,1200,KF,1196.5,0.68,500,100
 0.1,1,offset,4,1200,Immediate Conservative,1072.8,0.00,500,100
-0.1,2,mul,1,750,Our Method,747.7,0.00,500,100
-0.1,2,mul,1,750,Original Controller,746.1,4.78,500,100
-0.1,2,mul,1,750,MA,747.5,16.61,500,100
-0.1,2,mul,1,750,KF,747.4,13.21,500,100
-0.1,2,mul,1,750,Immediate Conservative,734.6,0.00,500,100
-0.1,2,mul,2,900,Our Method,852.5,0.00,500,100
-0.1,2,mul,2,900,Original Controller,842.1,0.01,500,100
-0.1,2,mul,2,900,MA,840.3,0.02,500,100
-0.1,2,mul,2,900,KF,840.4,0.01,500,100
-0.1,2,mul,2,900,Immediate Conservative,808.2,0.00,500,100
+0.1,2,mul,2,900,Our Method,898.5,0.00,500,100
+0.1,2,mul,2,900,Original Controller,888.1,4.70,500,100
+0.1,2,mul,2,900,MA,886.3,29.17,500,100
+0.1,2,mul,2,900,KF,886.4,5.43,500,100
+0.1,2,mul,2,900,Immediate Conservative,854.2,0.00,500,100
 0.1,2,mul,4,1200,Our Method,1198.3,0.00,500,100
-0.1,2,mul,4,1200,Original Controller,1173.3,0.00,500,100
-0.1,2,mul,4,1200,MA,1167.8,0.00,500,100
-0.1,2,mul,4,1200,KF,1172.0,0.00,500,100
+0.1,2,mul,4,1200,Original Controller,1175.0,5.15,500,100
+0.1,2,mul,4,1200,MA,1167.8,25.20,500,100
+0.1,2,mul,4,1200,KF,1172.0,12.52,500,100
 0.1,2,mul,4,1200,Immediate Conservative,1053.8,0.00,500,100
-0.1,3,stuck_min,1,750,Our Method,747.7,0.00,500,100
-0.1,3,stuck_min,1,750,Original Controller,757.1,10.10,500,100
-0.1,3,stuck_min,1,750,MA,766.0,27.52,500,100
-0.1,3,stuck_min,1,750,KF,773.1,34.46,500,100
-0.1,3,stuck_min,1,750,Immediate Conservative,734.2,0.00,500,100
-0.1,3,stuck_min,2,900,Our Method,852.3,0.00,500,100
-0.1,3,stuck_min,2,900,Original Controller,852.4,0.00,500,100
-0.1,3,stuck_min,2,900,MA,852.5,0.00,500,100
-0.1,3,stuck_min,2,900,KF,852.5,0.00,500,100
-0.1,3,stuck_min,2,900,Immediate Conservative,811.3,0.00,500,100
+0.1,3,stuck_min,2,900,Our Method,898.3,0.00,500,100
+0.1,3,stuck_min,2,900,Original Controller,907.3,10.08,500,100
+0.1,3,stuck_min,2,900,MA,915.3,42.09,500,100
+0.1,3,stuck_min,2,900,KF,921.7,17.12,500,100
+0.1,3,stuck_min,2,900,Immediate Conservative,857.3,0.00,500,100
 0.1,3,stuck_min,4,1200,Our Method,1198.3,0.00,500,100
-0.1,3,stuck_min,4,1200,Original Controller,1200.3,0.00,500,100
-0.1,3,stuck_min,4,1200,MA,1202.8,0.00,500,100
-0.1,3,stuck_min,4,1200,KF,1206.0,0.00,500,100
+0.1,3,stuck_min,4,1200,Original Controller,1206.9,11.59,500,100
+0.1,3,stuck_min,4,1200,MA,1214.5,33.14,500,100
+0.1,3,stuck_min,4,1200,KF,1220.5,23.70,500,100
 0.1,3,stuck_min,4,1200,Immediate Conservative,1040.0,0.00,500,100
-0.1,4,stuck_max,1,750,Our Method,747.7,0.00,500,100
-0.1,4,stuck_max,1,750,Original Controller,734.3,0.00,500,100
-0.1,4,stuck_max,1,750,MA,729.1,9.48,500,100
-0.1,4,stuck_max,1,750,KF,725.1,0.00,500,100
-0.1,4,stuck_max,1,750,Immediate Conservative,734.2,0.00,500,100
-0.1,4,stuck_max,2,900,Our Method,852.3,0.00,500,100
-0.1,4,stuck_max,2,900,Original Controller,822.3,0.00,500,100
-0.1,4,stuck_max,2,900,MA,804.2,0.00,500,100
-0.1,4,stuck_max,2,900,KF,806.7,0.00,500,100
-0.1,4,stuck_max,2,900,Immediate Conservative,811.3,0.00,500,100
+0.1,4,stuck_max,2,900,Our Method,895.3,0.00,500,100
+0.1,4,stuck_max,2,900,Original Controller,865.3,0.00,500,100
+0.1,4,stuck_max,2,900,MA,847.2,25.81,500,100
+0.1,4,stuck_max,2,900,KF,849.7,0.00,500,100
+0.1,4,stuck_max,2,900,Immediate Conservative,854.3,0.00,500,100
 0.1,4,stuck_max,4,1200,Our Method,1198.3,0.00,500,100
 0.1,4,stuck_max,4,1200,Original Controller,1140.6,0.00,500,100
-0.1,4,stuck_max,4,1200,MA,1072.5,0.00,500,100
-0.1,4,stuck_max,4,1200,KF,1057.9,0.00,500,100
+0.1,4,stuck_max,4,1200,MA,1072.5,18.46,500,100
+0.1,4,stuck_max,4,1200,KF,1055.0,0.00,500,100
 0.1,4,stuck_max,4,1200,Immediate Conservative,1040.0,0.00,500,100
-0.1,5,out_of_range,1,750,Our Method,747.6,0.00,500,100
-0.1,5,out_of_range,1,750,Original Controller,745.9,5.11,500,100
-0.1,5,out_of_range,1,750,MA,748.3,19.06,500,100
-0.1,5,out_of_range,1,750,KF,750.3,17.73,500,100
-0.1,5,out_of_range,1,750,Immediate Conservative,734.1,0.00,500,100
-0.1,5,out_of_range,2,900,Our Method,855.8,0.00,500,100
-0.1,5,out_of_range,2,900,Original Controller,840.7,0.01,500,100
-0.1,5,out_of_range,2,900,MA,830.6,0.02,500,100
-0.1,5,out_of_range,2,900,KF,832.8,0.01,500,100
-0.1,5,out_of_range,2,900,Immediate Conservative,812.3,0.00,500,100
+0.1,5,out_of_range,2,900,Our Method,898.8,0.00,500,100
+0.1,5,out_of_range,2,900,Original Controller,883.7,5.08,500,100
+0.1,5,out_of_range,2,900,MA,873.6,33.69,500,100
+0.1,5,out_of_range,2,900,KF,875.8,5.81,500,100
+0.1,5,out_of_range,2,900,Immediate Conservative,848.0,0.00,500,100
 0.1,5,out_of_range,4,1200,Our Method,1197.8,0.00,500,100
-0.1,5,out_of_range,4,1200,Original Controller,1165.2,0.00,500,100
-0.1,5,out_of_range,4,1200,MA,1133.9,0.00,500,100
-0.1,5,out_of_range,4,1200,KF,1131.0,0.00,500,100
+0.1,5,out_of_range,4,1200,Original Controller,1165.2,5.65,500,100
+0.1,5,out_of_range,4,1200,MA,1133.9,23.88,500,100
+0.1,5,out_of_range,4,1200,KF,1131.0,14.34,500,100
 0.1,5,out_of_range,4,1200,Immediate Conservative,1044.6,0.00,500,100
-0.5,1,offset,1,750,Our Method,739.1,0.00,500,100
-0.5,1,offset,1,750,Original Controller,749.7,10.99,500,100
-0.5,1,offset,1,750,MA,749.9,10.65,500,100
-0.5,1,offset,1,750,KF,749.9,5.51,500,100
-0.5,1,offset,1,750,Immediate Conservative,714.2,0.00,500,100
-0.5,1,offset,2,900,Our Method,855.3,0.00,500,100
-0.5,1,offset,2,900,Original Controller,852.3,0.01,500,100
-0.5,1,offset,2,900,MA,854.1,0.00,500,100
-0.5,1,offset,2,900,KF,853.5,0.01,500,100
-0.5,1,offset,2,900,Immediate Conservative,765.1,0.00,500,100
+0.5,1,offset,2,900,Our Method,898.3,0.00,500,100
+0.5,1,offset,2,900,Original Controller,895.3,12.67,500,100
+0.5,1,offset,2,900,MA,897.1,16.13,500,100
+0.5,1,offset,2,900,KF,896.5,3.18,500,100
+0.5,1,offset,2,900,Immediate Conservative,808.1,0.00,500,100
 0.5,1,offset,4,1200,Our Method,1198.9,0.00,500,100
-0.5,1,offset,4,1200,Original Controller,1180.2,0.00,500,100
-0.5,1,offset,4,1200,MA,1183.7,0.00,500,100
-0.5,1,offset,4,1200,KF,1185.5,0.00,500,100
+0.5,1,offset,4,1200,Original Controller,1197.4,12.40,500,100
+0.5,1,offset,4,1200,MA,1198.1,16.80,500,100
+0.5,1,offset,4,1200,KF,1197.0,5.80,500,100
 0.5,1,offset,4,1200,Immediate Conservative,920.2,0.00,500,100
-0.5,2,mul,1,750,Our Method,739.0,0.00,500,100
-0.5,2,mul,1,750,Original Controller,742.8,23.13,500,100
-0.5,2,mul,1,750,MA,746.4,36.35,500,100
-0.5,2,mul,1,750,KF,746.3,36.87,500,100
-0.5,2,mul,1,750,Immediate Conservative,699.1,0.00,500,100
-0.5,2,mul,2,900,Our Method,851.0,0.00,500,100
-0.5,2,mul,2,900,Original Controller,810.1,0.00,500,100
-0.5,2,mul,2,900,MA,811.9,0.00,500,100
-0.5,2,mul,2,900,KF,808.7,0.00,500,100
-0.5,2,mul,2,900,Immediate Conservative,745.8,0.00,500,100
+0.5,2,mul,2,900,Our Method,897.0,0.00,500,100
+0.5,2,mul,2,900,Original Controller,856.1,23.72,500,100
+0.5,2,mul,2,900,MA,857.9,44.13,500,100
+0.5,2,mul,2,900,KF,854.7,27.27,500,100
+0.5,2,mul,2,900,Immediate Conservative,791.8,0.00,500,100
 0.5,2,mul,4,1200,Our Method,1199.7,0.00,500,100
-0.5,2,mul,4,1200,Original Controller,1100.3,0.00,500,100
-0.5,2,mul,4,1200,MA,1104.9,0.00,500,100
-0.5,2,mul,4,1200,KF,1105.8,0.00,500,100
+0.5,2,mul,4,1200,Original Controller,1100.3,25.58,500,100
+0.5,2,mul,4,1200,MA,1104.9,40.22,500,100
+0.5,2,mul,4,1200,KF,1105.8,25.66,500,100
 0.5,2,mul,4,1200,Immediate Conservative,892.2,0.00,500,100
-0.5,3,stuck_min,1,750,Our Method,738.9,0.00,500,100
-0.5,3,stuck_min,1,750,Original Controller,788.6,50.42,500,100
-0.5,3,stuck_min,1,750,MA,818.1,87.61,500,100
-0.5,3,stuck_min,1,750,KF,823.9,94.23,500,100
-0.5,3,stuck_min,1,750,Immediate Conservative,698.2,0.00,500,100
-0.5,3,stuck_min,2,900,Our Method,852.4,0.00,500,100
-0.5,3,stuck_min,2,900,Original Controller,852.7,0.00,500,100
-0.5,3,stuck_min,2,900,MA,852.8,0.00,500,100
-0.5,3,stuck_min,2,900,KF,852.8,0.00,500,100
-0.5,3,stuck_min,2,900,Immediate Conservative,744.5,0.00,500,100
+0.5,3,stuck_min,2,900,Our Method,895.4,0.00,500,100
+0.5,3,stuck_min,2,900,Original Controller,944.3,50.44,500,100
+0.5,3,stuck_min,2,900,MA,972.3,87.36,500,100
+0.5,3,stuck_min,2,900,KF,977.8,85.67,500,100
+0.5,3,stuck_min,2,900,Immediate Conservative,787.5,0.00,500,100
 0.5,3,stuck_min,4,1200,Our Method,1199.4,0.00,500,100
-0.5,3,stuck_min,4,1200,Original Controller,1208.3,0.00,500,100
-0.5,3,stuck_min,4,1200,MA,1215.4,0.00,500,100
-0.5,3,stuck_min,4,1200,KF,1217.3,0.00,500,100
+0.5,3,stuck_min,4,1200,Original Controller,1241.9,49.17,500,100
+0.5,3,stuck_min,4,1200,MA,1268.5,80.18,500,100
+0.5,3,stuck_min,4,1200,KF,1273.7,56.72,500,100
 0.5,3,stuck_min,4,1200,Immediate Conservative,881.7,0.00,500,100
-0.5,4,stuck_max,1,750,Our Method,738.9,0.00,500,100
-0.5,4,stuck_max,1,750,Original Controller,698.3,0.00,500,100
-0.5,4,stuck_max,1,750,MA,688.1,1.01,500,100
-0.5,4,stuck_max,1,750,KF,685.6,0.00,500,100
-0.5,4,stuck_max,1,750,Immediate Conservative,698.2,0.00,500,100
-0.5,4,stuck_max,2,900,Our Method,852.4,0.00,500,100
-0.5,4,stuck_max,2,900,Original Controller,747.7,0.00,500,100
-0.5,4,stuck_max,2,900,MA,723.2,0.00,500,100
-0.5,4,stuck_max,2,900,KF,726.0,0.00,500,100
-0.5,4,stuck_max,2,900,Immediate Conservative,744.5,0.00,500,100
+0.5,4,stuck_max,2,900,Our Method,898.4,0.00,500,100
+0.5,4,stuck_max,2,900,Original Controller,793.7,0.00,500,100
+0.5,4,stuck_max,2,900,MA,769.2,5.37,500,100
+0.5,4,stuck_max,2,900,KF,772.0,0.00,500,100
+0.5,4,stuck_max,2,900,Immediate Conservative,790.5,0.00,500,100
 0.5,4,stuck_max,4,1200,Our Method,1199.4,0.00,500,100
-0.5,4,stuck_max,4,1200,Original Controller,980.2,0.00,500,100
-0.5,4,stuck_max,4,1200,MA,834.1,0.00,500,100
-0.5,4,stuck_max,4,1200,KF,824.3,0.00,500,100
+0.5,4,stuck_max,4,1200,Original Controller,980.2,0.01,500,100
+0.5,4,stuck_max,4,1200,MA,834.1,2.40,500,100
+0.5,4,stuck_max,4,1200,KF,824.3,0.65,500,100
 0.5,4,stuck_max,4,1200,Immediate Conservative,881.7,0.00,500,100
-0.5,5,out_of_range,1,750,Our Method,739.0,0.00,500,100
-0.5,5,out_of_range,1,750,Original Controller,743.7,25.40,500,100
-0.5,5,out_of_range,1,750,MA,765.4,51.64,500,100
-0.5,5,out_of_range,1,750,KF,768.9,53.84,500,100
-0.5,5,out_of_range,1,750,Immediate Conservative,698.0,0.00,500,100
-0.5,5,out_of_range,2,900,Our Method,855.4,0.00,500,100
-0.5,5,out_of_range,2,900,Original Controller,802.9,0.04,500,100
-0.5,5,out_of_range,2,900,MA,776.2,0.03,500,100
-0.5,5,out_of_range,2,900,KF,786.5,0.04,500,100
-0.5,5,out_of_range,2,900,Immediate Conservative,744.9,0.00,500,100
+0.5,5,out_of_range,2,900,Our Method,898.4,0.00,500,100
+0.5,5,out_of_range,2,900,Original Controller,845.9,25.36,500,100
+0.5,5,out_of_range,2,900,MA,819.2,37.31,500,100
+0.5,5,out_of_range,2,900,KF,829.5,29.19,500,100
+0.5,5,out_of_range,2,900,Immediate Conservative,787.9,0.00,500,100
 0.5,5,out_of_range,4,1200,Our Method,1199.3,0.00,500,100
-0.5,5,out_of_range,4,1200,Original Controller,1076.5,0.00,500,100
-0.5,5,out_of_range,4,1200,MA,970.4,0.00,500,100
-0.5,5,out_of_range,4,1200,KF,969.6,0.00,500,100
+0.5,5,out_of_range,4,1200,Original Controller,1076.5,27.20,500,100
+0.5,5,out_of_range,4,1200,MA,985.0,29.50,500,100
+0.5,5,out_of_range,4,1200,KF,969.6,16.36,500,100
 0.5,5,out_of_range,4,1200,Immediate Conservative,874.4,0.00,500,100

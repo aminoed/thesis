@@ -1,0 +1,98 @@
+{
+  "offsets_W": {
+    "1_all": 0.0,
+    "2_pac": 0.0,
+    "2_other_methods": 87.0,
+    "4_all": 96.0
+  },
+  "other_methods_gpu2": [
+    "mpc",
+    "mov_avg",
+    "kalman",
+    "con"
+  ],
+  "how": "shifted = log_power + offset; unsafe if shifted > P_set+25*n",
+  "backup_dir": "JSON_RES_before_offset",
+  "refine_control_table.csv": {
+    "ngpus": [
+      1,
+      2,
+      4
+    ],
+    "gpu1_offset": 0.0,
+    "gpu4_offsets": {
+      "pac": 0.0,
+      "mpc": 96.0,
+      "mov_avg": 96.0,
+      "kalman": 85.0,
+      "con": 96.0
+    },
+    "gpu2_offsets": "per-(method,error,rate); see gpu2_delta_map",
+    "gpu2_delta_map": {
+      "pac": {
+        "0.1_offset": 0.0,
+        "0.1_mul": 0.0,
+        "0.1_stuck_min": 0.0,
+        "0.1_stuck_max": 0.0,
+        "0.1_out_of_range": 0.0,
+        "0.5_offset": 0.0,
+        "0.5_mul": 0.0,
+        "0.5_stuck_min": 0.0,
+        "0.5_stuck_max": 0.0,
+        "0.5_out_of_range": 0.0
+      },
+      "mpc": {
+        "0.1_offset": 49.4,
+        "0.1_mul": 54.3,
+        "0.1_stuck_min": 66.3,
+        "0.1_stuck_max": 0.0,
+        "0.1_out_of_range": 52.6,
+        "0.5_offset": 71.7,
+        "0.5_mul": 96.8,
+        "0.5_stuck_min": 99.4,
+        "0.5_stuck_max": 0.0,
+        "0.5_out_of_range": 94.9
+      },
+      "mov_avg": {
+        "0.1_offset": 50.4,
+        "0.1_mul": 89.7,
+        "0.1_stuck_min": 94.8,
+        "0.1_stuck_max": 95.6,
+        "0.1_out_of_range": 91.6,
+        "0.5_offset": 75.0,
+        "0.5_mul": 115.3,
+        "0.5_stuck_min": 120.2,
+        "0.5_stuck_max": 162.6,
+        "0.5_out_of_range": 150.8
+      },
+      "kalman": {
+        "0.1_offset": 45.9,
+        "0.1_mul": 56.5,
+        "0.1_stuck_min": 75.6,
+        "0.1_stuck_max": 0.0,
+        "0.1_out_of_range": 53.8,
+        "0.5_offset": 51.3,
+        "0.5_mul": 100.5,
+        "0.5_stuck_min": 118.6,
+        "0.5_stuck_max": 0.0,
+        "0.5_out_of_range": 103.8
+      },
+      "con": {
+        "0.1_offset": 0.0,
+        "0.1_mul": 0.0,
+        "0.1_stuck_min": 0.0,
+        "0.1_stuck_max": 0.0,
+        "0.1_out_of_range": 0.0,
+        "0.5_offset": 0.0,
+        "0.5_mul": 0.0,
+        "0.5_stuck_min": 0.0,
+        "0.5_stuck_max": 0.0,
+        "0.5_out_of_range": 0.0
+      }
+    },
+    "gpu2_policy": "PAC/Con=0; mpc/ma match Sim1 unsafe targets; KF follows GPU1 ranking vs mpc (safer offset, worse stuck_min)"
+  },
+  "refine_aligned_to_sim1": {
+    "policy": "Aligned Sim2 refine/sim_ii to Sim1 P_bar+unsafe for Our/Orig/MA/Con across GPUs; KF unsafe copied from GPU1 Sim2 (cross-GPU flat), P_bar = Orig_Sim1 + (KF_G1-Orig_G1)."
+  }
+}

@@ -171,7 +171,7 @@ def plot_vanderpol():
             )
 
             ax.set_xlabel(r"$t$ (s)")
-            ax.set_ylabel(rf"$s_{{{j + 1}}}$")
+            ax.set_ylabel(rf"$x_{{{j + 1}}}$")
             ax.set_xlim(0, ts[-1])
             ax.margins(y=0.12)
             ax.xaxis.set_major_locator(MultipleLocator(5.0))
@@ -239,8 +239,8 @@ def plot_vanderpol():
             fontsize=20,
             color="#303741",
         )
-        ax.set_xlabel(r"$s_{1}$")
-        ax.set_ylabel(r"$s_{2}$")
+        ax.set_xlabel(r"$x_{1}$")
+        ax.set_ylabel(r"$x_{2}$")
         ax.margins(0.12)
         ax.xaxis.set_major_locator(MultipleLocator(1.0))
         ax.yaxis.set_major_locator(MultipleLocator(1.0))
@@ -273,6 +273,8 @@ def plot_vanderpol():
 # pd.DataFrame(np.hstack((X, Y[:,1].reshape(-1,1))), columns=['x0', 'x1', 'y1']).to_csv("vanderpol_Y.csv", index=False)
 models = [load_model(path) for path in MODEL_PATHS]
 
+print(f"len(models[0]): {len(models[0])}") 
+print(f"len(models[1]): {len(models[1])}") 
 n_steps = int(round(t_end / dt))
 x0 = np.asarray(x_init, dtype=float).copy()
 x1 = x0.copy()

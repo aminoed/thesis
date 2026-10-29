@@ -138,7 +138,7 @@ def plot_vanderpol():
             )
 
             ax.set_xlabel(r"$t$ (s)")
-            ax.set_ylabel(rf"$s_{{{j + 1}}}$")
+            ax.set_ylabel(rf"$x_{{{j + 1}}}$")
             # Model time bound is ~2.99996; keep display horizon at 3 so tick 3.0 shows.
             ax.set_xlim(0, 3.0)
             ax.margins(y=0.12)
@@ -215,8 +215,8 @@ def plot_vanderpol():
                 fontsize=20,
                 color="#303741",
             )
-        ax.set_xlabel(r"$s_{1}$")
-        ax.set_ylabel(r"$s_{2}$")
+        ax.set_xlabel(r"$x_{1}$")
+        ax.set_ylabel(r"$x_{2}$")
         ax.margins(0.12)
         ax.xaxis.set_major_locator(MultipleLocator(1.0))
         ax.yaxis.set_major_locator(MultipleLocator(1.0))
@@ -247,6 +247,10 @@ pieces1_path = "PAC_PIECE/pieces_a0.2_b0.01_k200000_e0.05_m3_sresidual_range_NPA
 pieces2_path = "PAC_PIECE/pieces_a0.2_b0.01_k100000_e0.1_m3_sresidual_range_NPAC97_y1.json"
 pieces1 = load_model(pieces1_path)
 pieces2 = load_model(pieces2_path)
+
+print(f"len(pieces1): {len(pieces1)}") 
+print(f"len(pieces2): {len(pieces2)}") 
+
 eps_star = [0.05, 0.1]  
 
 t_end = min(

@@ -137,7 +137,7 @@ def plot_lorenz():
             )
 
             ax.set_xlabel(r"$t$ (s)")
-            ax.set_ylabel(rf"$s_{{{j + 1}}}$")
+            ax.set_ylabel(rf"$x_{{{j + 1}}}$")
             # Use nominal horizon (not ts[-1]≈0.499…) so the 0.5 s tick is shown
             ax.set_xlim(0, 0.5)
             ax.margins(y=0.12)
@@ -183,6 +183,9 @@ pieces1 = load_model(pieces1_path)
 pieces2 = load_model(pieces2_path)  
 pieces3 = load_model(pieces3_path)
 
+print(f"len(pieces1): {len(pieces1)}") 
+print(f"len(pieces2): {len(pieces2)}") 
+print(f"len(pieces3): {len(pieces3)}") 
 t_end = min(
     0.5,
     max(p["bounds"][3][1] for p in pieces1),

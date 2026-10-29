@@ -102,6 +102,9 @@ def predict(xs, pieces):
 # pd.DataFrame(np.hstack((X, Y[:,2].reshape(-1,1))), columns=['x0', 'x1', 'x2', 'y2']).to_csv("lorenz_Z.csv", index=False)
 
 models = [load_model(path) for path in MODEL_PATHS]
+print(f"len(models[0]): {len(models[0])}") 
+print(f"len(models[1]): {len(models[1])}") 
+print(f"len(models[2]): {len(models[2])}") 
 x_init = [-4.3, -6.5, 21.5]
 
 x0 = np.asarray(x_init, dtype=float).copy()
@@ -161,7 +164,7 @@ plot_style = {
     "pdf.fonttype": 42,
 }
 
-state_ylabels = [rf"$s_{{{j+1}}}$" for j in range(3)]
+state_ylabels = [rf"$x_{{{j+1}}}$" for j in range(3)]
 state_filenames = [f"s{j+1}" for j in range(3)]
 y_ticks = (5.0, 10.0, 5.0)
 
@@ -254,8 +257,8 @@ with plt.rc_context(plot_style):
             fontsize=20,
             color="#303741",
         )
-        ax.set_xlabel(r"$s_{1}$")
-        ax.set_ylabel(r"$s_{2}$")
+        ax.set_xlabel(r"$x_{1}$")
+        ax.set_ylabel(r"$x_{2}$")
         ax.margins(0.12)
         ax.xaxis.set_major_locator(MultipleLocator(5.0))
         ax.yaxis.set_major_locator(MultipleLocator(10.0))

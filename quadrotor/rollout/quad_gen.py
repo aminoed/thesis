@@ -25,7 +25,7 @@ T_MIN_HEIGHT = 1.0             # after this time, s3 must stay above MIN_HEIGHT
 dt = 0.025
 rng = np.random.default_rng(0)
 CSV_PATH = "height_trajectories.csv"
-RECOMPUTE = True  # True: re-run rollouts; False: plot from CSV only
+RECOMPUTE = False  # True: re-run rollouts; False: plot from CSV only
 
 
 x_min = np.array([-5.0, -5.0, -0.5, -0.8, -0.8, -2.5, -0.03, -0.03, -0.15, -0.03, -0.03, -0.03,])
@@ -213,11 +213,11 @@ ax.axhspan(
 # Safety bounds (full-width lines)
 ax.axhline(
     MAX_HEIGHT, color=COLOR_BOUND, linestyle="--", linewidth=1.5, zorder=4,
-    label=r"$s_3 \leq 1.4$ (all $t$)",
+    label=r"$x_3 \leq 1.4$ (all $t$)",
 )
 ax.axhline(
     MIN_HEIGHT, color=COLOR_BOUND, linestyle="--", linewidth=1.5, zorder=4,
-    label=r"$s_3 \geq 0.9$ ($t \geq 1$)",
+    label=r"$x_3 \geq 0.9$ ($t \geq 1$)",
 )
 
 # Red value markers on the left (bounds only)
@@ -230,7 +230,7 @@ for y, text in [(MAX_HEIGHT, "1.4"), (MIN_HEIGHT, "0.9")]:
     )
 
 ax.set_xlabel(r"$t$ (s)")
-ax.set_ylabel(r"Height $s_3$ (m)")
+ax.set_ylabel(r"Height $x_3$ (m)")
 ax.set_xlim(0, 5)
 ax.grid(alpha=0.25)
 ax.spines["top"].set_visible(False)
