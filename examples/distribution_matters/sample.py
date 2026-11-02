@@ -11,10 +11,11 @@ y_uniform = x_uniform ** 2
 pd.DataFrame({"x0": x_uniform, "y": y_uniform}).to_csv("uniform.csv", index=False)
 
 # Gaussian (mean 0, std 0.4)
+scale = 0.4
 rng = np.random.default_rng()
 x_gauss = []
 while len(x_gauss) < N:
-    cand = rng.normal(loc=0.0, scale=0.4, size=N)
+    cand = rng.normal(loc=0.0, scale=scale, size=N)
     keep = cand[(cand >= LOW) & (cand <= HIGH)]
     x_gauss.extend(keep.tolist())
 x_gauss = np.array(x_gauss[:N])
@@ -31,8 +32,8 @@ axes[0].set_ylabel("density")
 axes[1].hist(x_gauss, bins=40, density=True, color="darkorange", edgecolor="white")
 # overlay the theoretical N(0, 0.3^2) pdf (untruncated, for visual check)
 xs = np.linspace(LOW, HIGH, 300)
-pdf = (1.0 / (0.3 * np.sqrt(2 * np.pi))) * np.exp(-0.5 * (xs / 0.3) ** 2)
-axes[1].plot(xs, pdf, "k-", lw=2, label=r"$N(0, 0.3^2)$")
+pdf = (1.0 / (scale * np.sqrt(2 * np.pi))) * np.exp(-0.5 * (xs / scale) ** 2)
+axes[1].plot(xs, pdf, "k-", lw=2, label=f"$N(0, {scale}^2)$")
 axes[1].set_title("Gaussian x (truncated to [-1, 1])")
 axes[1].set_xlabel("x")
 axes[1].legend()
