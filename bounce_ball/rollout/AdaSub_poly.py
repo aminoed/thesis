@@ -10,11 +10,11 @@ import pandas as pd
 from scipy import optimize
 
 ALPHA = 0.1
-BETA = 0.013
+BETA = 0.01
 M_MAX = 3
 SPLIT_STRATEGY = "residual_range"
-OUTPUT = 1
-EPS_STAR = 0.02 if OUTPUT == 0 else 0.03
+OUTPUT = 0
+EPS_STAR = 0.001 if OUTPUT == 0 else 0.03
 
 
 class BuildStates:
@@ -452,7 +452,8 @@ def serialize_piece(piece, X, y):
     return saved_piece
 
 
-data_file = f"bounce_ball_X_{200000}.csv" if OUTPUT == 0 else f"bounce_ball_Y_{200000}.csv"
+n_samples = 20000
+data_file = f"bounce_ball_X_{n_samples}.csv" if OUTPUT == 0 else f"bounce_ball_Y_{n_samples}.csv"
 X = pd.read_csv(data_file, float_precision="round_trip")[["x0", "x1"]].to_numpy(dtype=float)
 y = pd.read_csv(data_file, float_precision="round_trip")[f"y{OUTPUT}"].to_numpy(dtype=float)
 sample_size, d = X.shape

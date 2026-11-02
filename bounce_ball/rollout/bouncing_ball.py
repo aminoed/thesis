@@ -13,11 +13,13 @@ dt = 0.01
 t_end = 5.0
 x_init = [9.0, -6.9]
 eps_star = [0.001, 0.03]  # [height, velocity]
+RECOMPUTE = False  # True: re-run rollouts; False: plot from CSV only
+
 MODEL_PATHS = [
     "PAC_PIECE/"
-    f"pieces_a0.1_b0.013_k200000"
+    f"pieces_a0.1_b0.01_k10000"
     f"_e{0.001 if j == 0 else 0.03}"
-    f"_m3_sresidual_range_NPAC167_Y{j}.json"
+    f"_m3_sresidual_range_NPAC173_Y{j}.json"
     for j in range(2)
 ]
 
@@ -115,9 +117,12 @@ def predict(xs, pieces):
     return y_pred, p
 
 
-# X, Y = sample_bounce_ball(200000)
-# pd.DataFrame(np.hstack((X, Y[:,0].reshape(-1,1))), columns=['x0', 'x1', 'y0']).to_csv("bounce_ball_X_200000.csv", index=False)
-# pd.DataFrame(np.hstack((X, Y[:,1].reshape(-1,1))), columns=['x0', 'x1', 'y1']).to_csv("bounce_ball_Y_200000.csv", index=False)
+if RECOMPUTE:
+    n_samples = 20000
+    X, Y = sample_bounce_ball(n_samples)
+    pd.DataFrame(np.hstack((X, Y[:,0].reshape(-1,1))), columns=['x0', 'x1', 'y0']).to_csv(f"bounce_ball_X_{n_samples}.csv", index=False)
+    pd.DataFrame(np.hstack((X, Y[:,1].reshape(-1,1))), columns=['x0', 'x1', 'y1']).to_csv(f"bounce_ball_Y_{n_samples}.csv", index=False)
+    raise SystemExit  
 
 models = [load_model(path) for path in MODEL_PATHS]
 print(f"len(models[0]): {len(models[0])}") 

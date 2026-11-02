@@ -14,10 +14,11 @@ x_init = [-1.8, -1.5]
 eps_star = [0.05, 0.1]  # same as main
 x_min = np.array([-3.0, -3.0])
 x_max = np.array([3.0, 3.0])
+RECOMPUTE =  False  # True: re-run rollouts; False: plot from CSV only
 
 MODEL_PATHS = [
     "PAC_PIECE/"
-    f"pieces_a0.05_b1e-08_k10000_e0.01_m3_sresidual_range_NPAC897_y{j}.json"
+    f"pieces_a0.1_b1e-08_k10000_e0.05_m3_sresidual_range_NPAC449_y{j}.json"
     for j in range(2)
 ]
 
@@ -267,10 +268,14 @@ def plot_vanderpol():
         fig.savefig("vanderpol.pdf", bbox_inches="tight")
         plt.close(fig)
 
+if RECOMPUTE:
+    n_samples = 10000
+    X, Y = sample_vanderpol(Range, n_samples)
+    pd.DataFrame(np.hstack((X, Y[:,0].reshape(-1,1))), columns=['x0', 'x1', 'y0']).to_csv(f"vanderpol_X_{n_samples}.csv", index=False)
+    pd.DataFrame(np.hstack((X, Y[:,1].reshape(-1,1))), columns=['x0', 'x1', 'y1']).to_csv(f"vanderpol_Y_{n_samples}.csv", index=False)
+    raise SystemExit
 
-# X, Y = sample_vanderpol(Range, 10000)
-# pd.DataFrame(np.hstack((X, Y[:,0].reshape(-1,1))), columns=['x0', 'x1', 'y0']).to_csv("vanderpol_X.csv", index=False)
-# pd.DataFrame(np.hstack((X, Y[:,1].reshape(-1,1))), columns=['x0', 'x1', 'y1']).to_csv("vanderpol_Y.csv", index=False)
+
 models = [load_model(path) for path in MODEL_PATHS]
 
 print(f"len(models[0]): {len(models[0])}") 

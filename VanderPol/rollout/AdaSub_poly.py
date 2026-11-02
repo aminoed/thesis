@@ -11,7 +11,7 @@ import time
 
 ALPHA = 0.1
 BETA = 1e-8
-M_MAX = 1
+M_MAX = 3
 SPLIT_STRATEGY = "residual_range" 
 EPS_STAR = 0.05
 
@@ -451,9 +451,9 @@ def serialize_piece(piece, X, y):
     }
     return saved_piece
 
-
-data_file = f"vanderpol_X.csv"
-# data_file = f"vanderpol_Y.csv"
+n_samples = 10000
+data_file = f"vanderpol_X_{n_samples}.csv"
+# data_file = f"vanderpol_Y_{n_samples}.csv"
 X = pd.read_csv(data_file)[["x0", "x1"]].to_numpy(dtype=float)
 y = pd.read_csv(data_file)["y0"].to_numpy(dtype=float)
 # y = pd.read_csv(data_file)["y1"].to_numpy(dtype=float)

@@ -452,8 +452,9 @@ def serialize_piece(piece, X, y):
     return saved_piece
 
 
+n_samples = 10000
 for OUTPUT in range(3):
-    data_file = f"lorenz_{OUTPUT_NAME[OUTPUT]}.csv"
+    data_file = f"lorenz_{OUTPUT_NAME[OUTPUT]}_{n_samples}.csv"
     X = pd.read_csv(data_file)[["x0", "x1", "x2"]].to_numpy(dtype=float)
     y = pd.read_csv(data_file)[f"y{OUTPUT}"].to_numpy(dtype=float)
 
@@ -461,7 +462,7 @@ for OUTPUT in range(3):
     N_PAC = n_pac_for_degree(ALPHA, BETA, d, 1)
     init_bounds = [(X[:, i].min(), X[:, i].max()) for i in range(d)]
 
-    EPS_STAR = 0.0001 if OUTPUT == 0 else 0.001
+    EPS_STAR = 0.001
     DATA.__init__()
     DATA.start_timing()
     pieces = adaSubDiv(X, y, init_bounds, EPS_STAR, ALPHA, BETA, M_MAX, split_strategy=SPLIT_STRATEGY)

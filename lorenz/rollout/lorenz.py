@@ -11,10 +11,12 @@ x_max = np.array([19, 24, 46])
 dt = 0.001
 T = 7
 n_steps = int(round(T / dt))
+RECOMPUTE = False  # True: re-run rollouts; False: plot from CSV only
+
 MODEL_PATHS = [
     "PAC_PIECE/"
-    f"pieces_a0.2_b0.01_k100000"
-    f"_e{0.0001 if j == 0 else 0.001}"
+    f"pieces_a0.2_b0.01_k10000"
+    f"_e{0.001}"
     f"_m3_sresidual_range_NPAC97_y{j}.json"
     for j in range(3)
 ]
@@ -95,11 +97,13 @@ def predict(xs, pieces):
         y_pred = float(w[0] + np.dot(w[1:], xs))
     return y_pred, p
 
-
-# X, Y = sample_lorenz(100000)
-# pd.DataFrame(np.hstack((X, Y[:,0].reshape(-1,1))), columns=['x0', 'x1', 'x2', 'y0']).to_csv("lorenz_X.csv", index=False)
-# pd.DataFrame(np.hstack((X, Y[:,1].reshape(-1,1))), columns=['x0', 'x1', 'x2', 'y1']).to_csv("lorenz_Y.csv", index=False)
-# pd.DataFrame(np.hstack((X, Y[:,2].reshape(-1,1))), columns=['x0', 'x1', 'x2', 'y2']).to_csv("lorenz_Z.csv", index=False)
+if RECOMPUTE:
+    n_samples = 10000
+    X, Y = sample_lorenz(n_samples)
+    pd.DataFrame(np.hstack((X, Y[:,0].reshape(-1,1))), columns=['x0', 'x1', 'x2', 'y0']).to_csv(f"lorenz_X_{n_samples}.csv", index=False)
+    pd.DataFrame(np.hstack((X, Y[:,1].reshape(-1,1))), columns=['x0', 'x1', 'x2', 'y1']).to_csv(f"lorenz_Y_{n_samples}.csv", index=False)
+    pd.DataFrame(np.hstack((X, Y[:,2].reshape(-1,1))), columns=['x0', 'x1', 'x2', 'y2']).to_csv(f"lorenz_Z_{n_samples}.csv", index=False)
+    raise SystemExit
 
 models = [load_model(path) for path in MODEL_PATHS]
 print(f"len(models[0]): {len(models[0])}") 
