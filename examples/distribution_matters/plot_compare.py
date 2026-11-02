@@ -161,7 +161,7 @@ def make_figure(pieces, x_samples, color, model_label, out_path):
     plot_sample_hist(ax, x_samples, color)
     ax.legend(
         loc="upper left",
-        bbox_to_anchor=(0.05, 1.0),
+        bbox_to_anchor=(0.02, 1.0),
         ncol=1,
         frameon=True,
         fancybox=False,
