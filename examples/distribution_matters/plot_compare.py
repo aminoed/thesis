@@ -127,7 +127,7 @@ def plot_sample_hist(ax, x_samples, color, bin_width=0.1):
         linewidth=0,
         zorder=0,
     )
-    ax_r.set_ylabel("pdf", color=color, fontsize=12)
+    ax_r.set_ylabel("Sample density", color=color, fontsize=12)
     ax_r.tick_params(axis="y", labelsize=10, length=3.5, width=0.8, colors=color)
     ax_r.spines["top"].set_visible(False)
     ax_r.spines["right"].set_color(color)
