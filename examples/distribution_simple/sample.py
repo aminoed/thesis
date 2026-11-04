@@ -15,8 +15,8 @@ x_uniform = np.random.uniform(LOW, HIGH, N)
 y_uniform = phi(x_uniform)
 pd.DataFrame({"x0": x_uniform, "y": y_uniform}).to_csv("uniform.csv", index=False)
 
-# Gaussian (mean 0, std 1.0), truncated to [-π, π]
-scale = 1.0
+# Gaussian (mean 0, std 0.4)
+scale = 0.4
 rng = np.random.default_rng()
 x_gauss = []
 while len(x_gauss) < N:

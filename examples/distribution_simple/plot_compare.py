@@ -2,6 +2,7 @@ import csv
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from scipy.optimize import linprog
 
 COLOR_TRUE = "#9A9A9A"
 COLOR_UNIFORM = "#1F77B4"
@@ -15,10 +16,21 @@ def phi(x):
 
 
 def fit_linear(x, y):
-    # ŷ = w0 + w1 x  (ordinary least squares)
     A = np.column_stack([np.ones_like(x), x])
-    w, _, _, _ = np.linalg.lstsq(A, y, rcond=None)
-    return w  # [w0, w1]
+    A_ub = np.column_stack([np.vstack([A, -A]), -np.ones(2 * len(x))])
+    b_ub = np.concatenate([y, -y])
+
+    result = linprog(
+        c=[0, 0, 1],
+        A_ub=A_ub,
+        b_ub=b_ub,
+        bounds=[(-10, 10), (-10, 10), (0, None)],
+    )
+
+    if not result.success:
+        raise RuntimeError(result.message)
+
+    return result.x[:2]  # [w0, w1]
 
 
 def predict(w, x):
