@@ -224,14 +224,14 @@ dens_ylim = (0.0, float(max(h_uni.max(), h_gauss.max()) * 1.15))
 
 make_figure(
     w_uni, x_uni, COLOR_UNIFORM,
-    model_label=rf"Uniform LR: $y={w_uni[0]:.2f}+{w_uni[1]:.2f}x$",
+    model_label=rf"Uniform fit: $y={w_uni[0]:.2f}+{w_uni[1]:.2f}x$",
     out_path="compare_fit_uniform.pdf",
     ylim=ylim,
     dens_ylim=dens_ylim,
 )
 make_figure(
     w_gauss, x_gauss, COLOR_GAUSSIAN,
-    model_label=rf"Gaussian LR: $y={w_gauss[0]:.2f}+{w_gauss[1]:.2f}x$",
+    model_label=rf"Gaussian fit: $y={w_gauss[0]:.2f}+{w_gauss[1]:.2f}x$",
     out_path="compare_fit_gaussian.pdf",
     ylim=ylim,
     dens_ylim=dens_ylim,
