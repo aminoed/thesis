@@ -69,14 +69,14 @@ def draw_comparison(x, y, rows, threshold, parent_weights):
         "mathtext.fontset": "stix", "font.size": 10, "pdf.fonttype": 42,
         "axes.spines.top": False, "axes.spines.right": False,
     })
-    ink, samples, fit, cut, accent = "#242B30", "#78838B", "#23688E", "#68727A", "#733E77"
+    ink, samples, fit, cut, accent = "#242B30", "#242B30", "#23688E", "#68727A", "#733E77"
     parent_color = "#A05B33"
     figures = []
     grid = np.linspace(x[0], x[-1], 450)
     parent_fit = parent_weights[0] + parent_weights[1] * grid
     names = ("Residual-range", "Maximum-residual")
     handles = [
-        Line2D([], [], color=ink, label=r"$\varphi(x) = \sin x$"),
+        # Line2D([], [], color=ink, label=r"$\varphi(x) = \sin x$"),
         Line2D([], [], color=samples, linestyle="none", marker="o",
                markersize=3.6, label="Samples"),
         Line2D([], [], color=parent_color, linestyle="--", label="Global linear fit"),
@@ -90,9 +90,9 @@ def draw_comparison(x, y, rows, threshold, parent_weights):
             fig, ax = plt.subplots(figsize=(3.4, 2.1))
             fig.subplots_adjust(left=0.17, right=0.94, bottom=0.27, top=0.95)
             error, x_error, fitted = worst_curve_error(pieces)
-            ax.plot(grid, np.sin(grid), color=ink, linewidth=1.1, zorder=2)
+            # ax.plot(grid, np.sin(grid), color=ink, linewidth=1.1, zorder=2)
             ax.plot(grid, parent_fit, color=parent_color, linestyle="--", linewidth=1.1, zorder=2)
-            ax.scatter(x[::6], y[::6], color=samples, s=10, linewidth=0, zorder=3)
+            ax.scatter(x, y, color=samples, s=2, linewidth=0, zorder=3)
             for i, piece in enumerate(pieces):
                 low, high = piece["bounds"][0]
                 xx = np.array([low, high])
@@ -135,7 +135,7 @@ def main():
     api = load_estimator(args.source)
     x = np.linspace(0.0, 1.5 * np.pi, 121)
     y = np.sin(x)
-    alpha, beta, threshold = 0.5, 0.1, 0.20
+    alpha, beta, threshold = 0.5, 0.1, 0.2
     strategies = ("residual_range", "maximum_residual")
     parent_weights, _ = api["fit_polynomial_pac"](x[:, None], y, 1)
     parent_errors = api["compute_errors"](x[:, None], y, parent_weights, 1)
