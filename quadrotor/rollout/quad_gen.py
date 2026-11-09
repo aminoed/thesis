@@ -201,7 +201,7 @@ COLOR_TRAJ = "#E07A3D"   # orange — PAC rollouts
 ts = df["t"].to_numpy()
 run_cols = [c for c in df.columns if c.startswith("run_")]
 
-fig, ax = plt.subplots(figsize=(8, 5))
+fig, ax = plt.subplots(figsize=(4, 3))
 for col in run_cols:
     ax.plot(ts, df[col], color=COLOR_TRAJ, alpha=0.18, linewidth=0.7, zorder=1)
 
@@ -221,10 +221,10 @@ ax.axhline(
 )
 
 # Red value markers on the left (bounds only)
-for y, text in [(MAX_HEIGHT, "1.4"), (MIN_HEIGHT, "0.9")]:
+for y, text, dy in [(MAX_HEIGHT, "1.4", 0), (MIN_HEIGHT, "0.9", -4)]:
     ax.annotate(
         text, xy=(0.0, y), xycoords=ax.get_yaxis_transform(),
-        xytext=(-6, 0), textcoords="offset points",
+        xytext=(-6, dy), textcoords="offset points",
         ha="right", va="center", fontsize=10, color="red",
         clip_on=False,
     )
@@ -232,6 +232,7 @@ for y, text in [(MAX_HEIGHT, "1.4"), (MIN_HEIGHT, "0.9")]:
 ax.set_xlabel(r"$t$ (s)")
 ax.set_ylabel(r"Height $x_3$ (m)")
 ax.set_xlim(0, 5)
+ax.yaxis.set_major_locator(MultipleLocator(0.5))
 ax.grid(alpha=0.25)
 ax.spines["top"].set_visible(False)
 ax.spines["right"].set_visible(False)
