@@ -115,7 +115,7 @@ def draw_comparison(x, y, rows, threshold, parent_weights):
             ax.set_axisbelow(True)
             ax.grid(axis="y", color="#E4E8EB", linewidth=0.6)
             ax.set_ylabel(r"$\varphi(x)$")
-            ax.set_xlabel(r"Input $x$")
+            ax.set_xlabel(r"$x$")
             if letter == "a":
                 ax.legend(handles=handles, loc="lower left", ncol=2,
                           frameon=False, fontsize=7.0, columnspacing=0.7,
