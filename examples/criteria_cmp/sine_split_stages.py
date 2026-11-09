@@ -156,8 +156,8 @@ def main():
                   f"sample error={sample_error:.6f}, curve error={curve_error:.6f}")
 
     for letter, fig in draw_comparison(x, y, (first, final), threshold, parent_weights):
-        fig.savefig(args.output_dir / f"sine_split_{letter}.pdf")
-        fig.savefig(args.output_dir / f"sine_split_{letter}.png", dpi=300)
+        fig.savefig(args.output_dir / f"sin_split_{letter}.pdf")
+        fig.savefig(args.output_dir / f"sin_split_{letter}.png", dpi=300)
         plt.close(fig)
 
 
