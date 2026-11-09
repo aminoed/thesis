@@ -87,7 +87,7 @@ def draw_comparison(x, y, rows, threshold, parent_weights):
 
     for row, results in enumerate(rows):
         for column, pieces in enumerate(results):
-            fig, ax = plt.subplots(figsize=(3.4, 2.65))
+            fig, ax = plt.subplots(figsize=(3.4, 2.1))
             fig.subplots_adjust(left=0.17, right=0.94, bottom=0.27, top=0.95)
             error, x_error, fitted = worst_curve_error(pieces)
             ax.plot(grid, np.sin(grid), color=ink, linewidth=1.1, zorder=2)
@@ -103,8 +103,8 @@ def draw_comparison(x, y, rows, threshold, parent_weights):
             # ax.vlines(x_error, fitted, np.sin(x_error), color=accent, linewidth=1.6, zorder=5)
             stage = "one split" if row == 0 else "second split"
             letter = "abcd"[2 * row + column]
-            fig.text(0.5, 0.055, f"({letter}) {names[column]}, {stage}",
-                     ha="center", fontsize=9.5, fontweight="bold")
+            # fig.text(0.5, 0.055, f"({letter}) {names[column]}, {stage}",
+            #          ha="center", fontsize=9.5, fontweight="bold")
             # ax.text(0.035, 0.06, f"Curve error = {error:.3f}",
             #         transform=ax.transAxes, va="bottom", fontsize=9, color=accent,
             #         bbox={"facecolor": "white", "edgecolor": "none", "pad": 1.1})
