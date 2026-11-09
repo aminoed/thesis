@@ -30,14 +30,12 @@ def load_estimator(path):
     return namespace
 
 
-def first_split(api, x, y, alpha, beta, strategy):
+def first_split(api, x, y, alpha, beta, strategy, parent_errors):
     X = x[:, None]
     ids = np.arange(x.size)
     min_samples = api["n_pac_for_degree"](alpha, beta, 1, 1)
-    weights, _ = api["fit_polynomial_pac"](X, y, 1)
-    errors = api["compute_errors"](X, y, weights, 1)
     _, cut, left, right, cut_index = api["best_split"](
-        X, y, ids, min_samples, errors, ids, strategy
+        X, y, ids, min_samples, parent_errors, ids, strategy
     )
     result = []
     for sample_ids, bounds in zip((left[left != cut_index], right),
@@ -65,21 +63,35 @@ def worst_curve_error(pieces):
     return worst
 
 
-def draw_comparison(x, y, rows, threshold):
+def draw_comparison(x, y, rows, threshold, parent_weights):
     plt.rcParams.update({
         "font.family": "serif", "font.serif": ["STIXGeneral", "DejaVu Serif"],
         "mathtext.fontset": "stix", "font.size": 10, "pdf.fonttype": 42,
         "axes.spines.top": False, "axes.spines.right": False,
     })
     ink, samples, fit, cut, accent = "#242B30", "#78838B", "#23688E", "#68727A", "#733E77"
-    fig, axes = plt.subplots(2, 2, sharex=True, sharey=True, figsize=(6.7, 5.0))
-    fig.subplots_adjust(left=0.11, right=0.965, top=0.85, bottom=0.125, wspace=0.17, hspace=0.42)
+    parent_color = "#A05B33"
+    figures = []
     grid = np.linspace(x[0], x[-1], 450)
+    parent_fit = parent_weights[0] + parent_weights[1] * grid
     names = ("Residual-range", "Maximum-residual")
-    for row, (axes_row, results) in enumerate(zip(axes, rows)):
-        for column, (ax, pieces) in enumerate(zip(axes_row, results)):
+    handles = [
+        Line2D([], [], color=ink, label=r"$\varphi(x) = \sin x$"),
+        Line2D([], [], color=samples, linestyle="none", marker="o",
+               markersize=3.6, label="Samples"),
+        Line2D([], [], color=parent_color, linestyle="--", label="Global linear fit"),
+        Line2D([], [], color=fit, label="Local fits"),
+        Line2D([], [], color=cut, linestyle=":", label="Split"),
+        # Line2D([], [], color=accent, label="Curve error"),
+    ]
+
+    for row, results in enumerate(rows):
+        for column, pieces in enumerate(results):
+            fig, ax = plt.subplots(figsize=(3.4, 2.1))
+            fig.subplots_adjust(left=0.17, right=0.94, bottom=0.27, top=0.95)
             error, x_error, fitted = worst_curve_error(pieces)
             ax.plot(grid, np.sin(grid), color=ink, linewidth=1.1, zorder=2)
+            ax.plot(grid, parent_fit, color=parent_color, linestyle="--", linewidth=1.1, zorder=2)
             ax.scatter(x[::6], y[::6], color=samples, s=10, linewidth=0, zorder=3)
             for i, piece in enumerate(pieces):
                 low, high = piece["bounds"][0]
@@ -91,8 +103,8 @@ def draw_comparison(x, y, rows, threshold):
             # ax.vlines(x_error, fitted, np.sin(x_error), color=accent, linewidth=1.6, zorder=5)
             stage = "one split" if row == 0 else "second split"
             letter = "abcd"[2 * row + column]
-            ax.set_title(f"({letter}) {names[column]}, {stage}", y=-0.3 if row == 0 else -0.45,
-                         loc="left", fontweight="bold", fontsize=10.2, pad=7)
+            # fig.text(0.5, 0.055, f"({letter}) {names[column]}, {stage}",
+            #          ha="center", fontsize=9.5, fontweight="bold")
             # ax.text(0.035, 0.06, f"Curve error = {error:.3f}",
             #         transform=ax.transAxes, va="bottom", fontsize=9, color=accent,
             #         bbox={"facecolor": "white", "edgecolor": "none", "pad": 1.1})
@@ -104,19 +116,14 @@ def draw_comparison(x, y, rows, threshold):
             ax.grid(axis="y", color="#E4E8EB", linewidth=0.6)
             ax.set_ylabel(r"$\varphi(x)$")
             ax.set_xlabel(r"Input $x$")
+            if letter == "a":
+                ax.legend(handles=handles, loc="lower left", ncol=2,
+                          frameon=False, fontsize=7.0, columnspacing=0.7,
+                          handlelength=1.5, handletextpad=0.45)
+            figures.append((letter, fig))
     # fig.supxlabel(rf"Input $x$   |   Final fits use sample threshold $\epsilon_\mathrm{{min}}={threshold:.2f}$",
     #               y=0.029, fontsize=10)
-    handles = [
-        Line2D([], [], color=ink, label=r"$\varphi(x) = \sin x$"),
-        Line2D([], [], color=samples, linestyle="none", marker="o",
-               markersize=3.6, label="Samples"),
-        Line2D([], [], color=fit, label="Local fits"),
-        Line2D([], [], color=cut, linestyle=":", label="Split"),
-        # Line2D([], [], color=accent, label="Curve error"),
-    ]
-    fig.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.55, 0.985),
-               ncol=5, frameon=False, fontsize=9.4, columnspacing=1.05, handletextpad=0.55)
-    return fig
+    return figures
 
 
 def main():
@@ -130,7 +137,10 @@ def main():
     y = np.sin(x)
     alpha, beta, threshold = 0.5, 0.1, 0.20
     strategies = ("residual_range", "maximum_residual")
-    first = [first_split(api, x, y, alpha, beta, strategy) for strategy in strategies]
+    parent_weights, _ = api["fit_polynomial_pac"](x[:, None], y, 1)
+    parent_errors = api["compute_errors"](x[:, None], y, parent_weights, 1)
+    first = [first_split(api, x, y, alpha, beta, strategy, parent_errors)
+             for strategy in strategies]
     final = [
         sorted(api["adaSubDiv"](x[:, None], y, [(x[0], x[-1])], threshold,
                                 alpha, beta, 1, strategy),
@@ -145,10 +155,10 @@ def main():
             print(f"{stage}, {strategy}: cuts/pi={cuts}, "
                   f"sample error={sample_error:.6f}, curve error={curve_error:.6f}")
 
-    fig = draw_comparison(x, y, (first, final), threshold)
-    fig.savefig(args.output_dir / "sine_split_stages.pdf")
-    fig.savefig(args.output_dir / "sine_split_stages.png", dpi=300)
-    plt.close(fig)
+    for letter, fig in draw_comparison(x, y, (first, final), threshold, parent_weights):
+        fig.savefig(args.output_dir / f"sine_split_{letter}.pdf")
+        fig.savefig(args.output_dir / f"sine_split_{letter}.png", dpi=300)
+        plt.close(fig)
 
 
 if __name__ == "__main__":
