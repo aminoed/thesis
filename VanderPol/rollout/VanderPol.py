@@ -123,6 +123,9 @@ def plot_vanderpol():
     FIG_SIZE = (6.0, 4.5)
 
     plot_style = {
+        "font.family": "serif",
+        "font.serif": ["Times New Roman", "Times"],
+        "mathtext.fontset": "stix",
         "font.size": 24,
         "axes.labelsize": 28,
         "axes.labelpad": 8,
@@ -144,6 +147,8 @@ def plot_vanderpol():
         "axes.facecolor": "white",
         "savefig.facecolor": "white",
         "pdf.fonttype": 42,
+        "axes.spines.top": False,
+        "axes.spines.right": False,
     }
 
     with plt.rc_context(plot_style):

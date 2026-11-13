@@ -125,7 +125,11 @@ def plot_sample_hist(ax, x_samples, color, dens_ylim, bin_width=0.25):
 
 
 def make_figure(w, x_samples, color, model_label, out_path, ylim, dens_ylim):
-    plt.rcParams.update({"font.family": "sans-serif"})
+    plt.rcParams.update({
+        "font.family": "serif", "font.serif": ["Times New Roman", "Times"],
+        "mathtext.fontset": "stix", "font.size": 10, "pdf.fonttype": 42,
+        "axes.spines.top": False, "axes.spines.right": False,
+    })
     x_true = np.linspace(LOW, HIGH, 500)
 
     fig, ax = plt.subplots(figsize=(7.2, 4.6), dpi=150)

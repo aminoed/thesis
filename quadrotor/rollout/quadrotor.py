@@ -244,6 +244,11 @@ state_filenames = [f"x{j+1}" for j in range(12)]
 
 with plt.rc_context(plot_style):
     for j, ylabel, filename in zip(range(12), state_ylabels, state_filenames):
+        plt.rcParams.update({
+        "font.family": "serif", "font.serif": ["Times New Roman", "Times"],
+        "mathtext.fontset": "stix", "font.size": 10, "pdf.fonttype": 42,
+        "axes.spines.top": False, "axes.spines.right": False,
+        })
         fig, ax = plt.subplots(figsize=(6.0, 4.5), layout="constrained")
 
         if j == 2:

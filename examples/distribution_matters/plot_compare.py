@@ -144,7 +144,11 @@ def plot_sample_hist(ax, x_samples, color, bin_width=0.1):
 
 
 def make_figure(pieces, x_samples, color, model_label, out_path):
-    plt.rcParams.update({"font.family": "sans-serif"})
+    plt.rcParams.update({
+        "font.family": "serif", "font.serif": ["Times New Roman", "Times"],
+        "mathtext.fontset": "stix", "font.size": 10, "pdf.fonttype": 42,
+        "axes.spines.top": False, "axes.spines.right": False,
+    })
     x_true = np.linspace(-1, 1, 500)
     y_true = x_true ** 2
 

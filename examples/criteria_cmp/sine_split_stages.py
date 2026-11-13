@@ -78,7 +78,7 @@ def draw_parent_fits(ax, parent_pieces, parent_weights, color, grid):
 
 def draw_comparison(x, y, rows, threshold, parent_weights):
     plt.rcParams.update({
-        "font.family": "serif", "font.serif": ["STIXGeneral", "DejaVu Serif"],
+        "font.family": "serif", "font.serif": ["Times New Roman", "Times"],
         "mathtext.fontset": "stix", "font.size": 10, "pdf.fonttype": 42,
         "axes.spines.top": False, "axes.spines.right": False,
     })

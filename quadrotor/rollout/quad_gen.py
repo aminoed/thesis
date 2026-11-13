@@ -201,6 +201,11 @@ COLOR_TRAJ = "#E07A3D"   # orange — PAC rollouts
 ts = df["t"].to_numpy()
 run_cols = [c for c in df.columns if c.startswith("run_")]
 
+plt.rcParams.update({
+    "font.family": "serif", "font.serif": ["Times New Roman", "Times"],
+    "mathtext.fontset": "stix", "font.size": 10, "pdf.fonttype": 42,
+    "axes.spines.top": False, "axes.spines.right": False,
+})
 fig, ax = plt.subplots(figsize=(4, 3))
 for col in run_cols:
     ax.plot(ts, df[col], color=COLOR_TRAJ, alpha=0.18, linewidth=0.7, zorder=1)
@@ -239,6 +244,6 @@ ax.spines["right"].set_visible(False)
 ax.legend(frameon=False, loc="lower right")
 fig.tight_layout()
 fig.subplots_adjust(left=0.14) 
-plt.rcParams["pdf.fonttype"] = 42
+
 fig.savefig("height.pdf", bbox_inches="tight")
 plt.show()

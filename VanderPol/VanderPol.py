@@ -114,6 +114,11 @@ def plot_vanderpol():
 
     with plt.rc_context(plot_style):
         for j in range(2):
+            plt.rcParams.update({
+                "font.family": "serif", "font.serif": ["Times New Roman", "Times"],
+                "mathtext.fontset": "stix", "font.size": 10, "pdf.fonttype": 42,
+                "axes.spines.top": False, "axes.spines.right": False,
+            })
             fig, ax = plt.subplots(figsize=FIG_SIZE, layout="constrained")
 
             ax.plot(

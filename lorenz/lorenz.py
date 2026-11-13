@@ -88,6 +88,9 @@ def plot_lorenz():
     y_ticks = (5.0, 10.0, 10.0)
 
     plot_style = {
+        "font.family": "serif",
+        "font.serif": ["Times New Roman", "Times"],
+        "mathtext.fontset": "stix",
         "font.size": 24,
         "axes.labelsize": 28,
         "axes.labelpad": 8,
@@ -109,6 +112,8 @@ def plot_lorenz():
         "axes.facecolor": "white",
         "savefig.facecolor": "white",
         "pdf.fonttype": 42,
+        "axes.spines.top": False,
+        "axes.spines.right": False,
     }
 
     with plt.rc_context(plot_style):
