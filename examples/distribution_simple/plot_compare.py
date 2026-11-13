@@ -79,9 +79,9 @@ def style_axes(ax, ylim):
     pad = 0.05 * (HIGH - LOW)
     ax.set_xlim(LOW - pad, HIGH + pad)
     ax.set_ylim(*ylim)
-    ax.set_xlabel(r"$x$", fontsize=12)
-    ax.set_ylabel(r"$y$", fontsize=12)
-    ax.tick_params(labelsize=10, length=3.5, width=0.8)
+    ax.set_xlabel(r"$x$")
+    ax.set_ylabel(r"$y$")
+    ax.tick_params(length=3.5, width=0.8)
     for spine in ("top", "right"):
         ax.spines[spine].set_visible(False)
     for spine in ("left", "bottom"):
@@ -109,7 +109,7 @@ def plot_sample_hist(ax, x_samples, color, dens_ylim, bin_width=0.25):
         linewidth=0,
         zorder=0,
     )
-    ax_r.set_ylabel("Sample density", color=color, fontsize=12)
+    ax_r.set_ylabel("Sample density", color=color)
     ax_r.tick_params(axis="y", labelsize=10, length=3.5, width=0.8, colors=color)
     ax_r.spines["top"].set_visible(False)
     ax_r.spines["right"].set_color(color)
@@ -127,7 +127,7 @@ def plot_sample_hist(ax, x_samples, color, dens_ylim, bin_width=0.25):
 def make_figure(w, x_samples, color, model_label, out_path, ylim, dens_ylim):
     plt.rcParams.update({
         "font.family": "serif", "font.serif": ["Times New Roman", "Times"],
-        "mathtext.fontset": "stix", "font.size": 10, "pdf.fonttype": 42,
+        "mathtext.fontset": "stix", "font.size": 15, "pdf.fonttype": 42,
         "axes.spines.top": False, "axes.spines.right": False,
     })
     x_true = np.linspace(LOW, HIGH, 500)
@@ -153,51 +153,9 @@ def make_figure(w, x_samples, color, model_label, out_path, ylim, dens_ylim):
         fancybox=False,
         edgecolor="#D0D0D0",
         framealpha=0.95,
-        fontsize=10,
         handlelength=2.2,
     )
     fig.tight_layout()
-    plt.rcParams["pdf.fonttype"] = 42
-    fig.savefig(out_path, dpi=150, bbox_inches="tight", facecolor="white")
-    plt.close(fig)
-    print(f"saved {out_path}")
-
-
-def make_overlay(w_uni, w_gauss, ylim, out_path="compare_fit_overlay.pdf"):
-    plt.rcParams.update({"font.family": "sans-serif"})
-    x_true = np.linspace(LOW, HIGH, 500)
-
-    fig, ax = plt.subplots(figsize=(7.2, 4.6), dpi=150)
-    ax.plot(
-        x_true, phi(x_true),
-        color=COLOR_TRUE, lw=3.0,
-        label=r"True $\varphi(x)$",
-        zorder=2,
-    )
-    ax.plot(
-        x_true, predict(w_uni, x_true),
-        color=COLOR_UNIFORM, lw=2.2,
-        label=rf"Uniform fit: $y={w_uni[0]:.2f}+{w_uni[1]:.2f}x$",
-        zorder=3,
-    )
-    ax.plot(
-        x_true, predict(w_gauss, x_true),
-        color=COLOR_GAUSSIAN, lw=2.2,
-        label=rf"Gaussian fit: $y={w_gauss[0]:.2f}+{w_gauss[1]:.2f}x$",
-        zorder=3,
-    )
-    style_axes(ax, ylim)
-    ax.legend(
-        loc="upper left",
-        frameon=True,
-        fancybox=False,
-        edgecolor="#D0D0D0",
-        framealpha=0.95,
-        fontsize=10,
-        handlelength=2.2,
-    )
-    fig.tight_layout()
-    plt.rcParams["pdf.fonttype"] = 42
     fig.savefig(out_path, dpi=150, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     print(f"saved {out_path}")
@@ -242,7 +200,6 @@ make_figure(
     ylim=ylim,
     dens_ylim=dens_ylim,
 )
-make_overlay(w_uni, w_gauss, ylim)
 
 save_summary([
     summarize("uniform", w_uni, x_uni, y_uni),
