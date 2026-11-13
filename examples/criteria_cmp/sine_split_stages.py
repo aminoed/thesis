@@ -63,6 +63,19 @@ def worst_curve_error(pieces):
     return worst
 
 
+def draw_parent_fits(ax, parent_pieces, parent_weights, color, grid):
+    """Dashed reference: global fit for first split; previous-stage pieces later."""
+    if parent_pieces is None:
+        ax.plot(grid, parent_weights[0] + parent_weights[1] * grid,
+                color=color, linestyle="--", linewidth=1.1, zorder=2)
+        return
+    for piece in parent_pieces:
+        low, high = piece["bounds"][0]
+        xx = np.array([low, high])
+        w = piece["w"]
+        ax.plot(xx, w[0] + w[1] * xx, color=color, linestyle="--", linewidth=1.1, zorder=2)
+
+
 def draw_comparison(x, y, rows, threshold, parent_weights):
     plt.rcParams.update({
         "font.family": "serif", "font.serif": ["STIXGeneral", "DejaVu Serif"],
@@ -73,13 +86,12 @@ def draw_comparison(x, y, rows, threshold, parent_weights):
     parent_color = "#A05B33"
     figures = []
     grid = np.linspace(x[0], x[-1], 450)
-    parent_fit = parent_weights[0] + parent_weights[1] * grid
     names = ("Residual-range", "Maximum-residual")
     handles = [
         # Line2D([], [], color=ink, label=r"$\varphi(x) = \sin x$"),
         Line2D([], [], color=samples, linestyle="none", marker="o",
                markersize=3.6, label="Samples"),
-        Line2D([], [], color=parent_color, linestyle="--", label="Global linear fit"),
+        Line2D([], [], color=parent_color, linestyle="--", label="Previous fit"),
         Line2D([], [], color=fit, label="Local fits"),
         Line2D([], [], color=cut, linestyle=":", label="Split"),
         # Line2D([], [], color=accent, label="Curve error"),
@@ -91,7 +103,8 @@ def draw_comparison(x, y, rows, threshold, parent_weights):
             fig.subplots_adjust(left=0.17, right=0.94, bottom=0.27, top=0.95)
             error, x_error, fitted = worst_curve_error(pieces)
             # ax.plot(grid, np.sin(grid), color=ink, linewidth=1.1, zorder=2)
-            ax.plot(grid, parent_fit, color=parent_color, linestyle="--", linewidth=1.1, zorder=2)
+            parent_pieces = None if row == 0 else rows[row - 1][column]
+            draw_parent_fits(ax, parent_pieces, parent_weights, parent_color, grid)
             ax.scatter(x, y, color=samples, s=2, linewidth=0, zorder=3)
             for i, piece in enumerate(pieces):
                 low, high = piece["bounds"][0]

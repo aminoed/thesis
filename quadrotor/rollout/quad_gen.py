@@ -239,5 +239,6 @@ ax.spines["right"].set_visible(False)
 ax.legend(frameon=False, loc="lower right")
 fig.tight_layout()
 fig.subplots_adjust(left=0.14) 
+plt.rcParams["pdf.fonttype"] = 42
 fig.savefig("height.pdf", bbox_inches="tight")
 plt.show()

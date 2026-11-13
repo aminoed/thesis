@@ -153,6 +153,7 @@ def make_figure(w, x_samples, color, model_label, out_path, ylim, dens_ylim):
         handlelength=2.2,
     )
     fig.tight_layout()
+    plt.rcParams["pdf.fonttype"] = 42
     fig.savefig(out_path, dpi=150, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     print(f"saved {out_path}")
@@ -192,6 +193,7 @@ def make_overlay(w_uni, w_gauss, ylim, out_path="compare_fit_overlay.pdf"):
         handlelength=2.2,
     )
     fig.tight_layout()
+    plt.rcParams["pdf.fonttype"] = 42
     fig.savefig(out_path, dpi=150, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     print(f"saved {out_path}")
